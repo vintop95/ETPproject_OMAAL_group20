@@ -1,14 +1,13 @@
 import java.util.*;
 import java.io.*;
 
-
+//TODO: CREATE DEDICATED CLASSES FOR EVERY PROCESS OF THE ALGORITHM
 public class EtpSolver {
-
+	
+	//SHOULD BE OK
 	static int readNTimeslots(String istanceName){
-		
 		int n=0;
 
-		
 		try{
 			Scanner in = new Scanner(new File(istanceName + ".slo"));
 			n = in.nextInt();
@@ -19,58 +18,53 @@ public class EtpSolver {
         	System.out.println("Empty exm file.");
         }
 		
-		
 		return n;
 	}
 	
+	
+	//TODO: CAN WE JUST ASSUME THAT EXAMS STARTS FROM 0 TO N_EXAMS-1?
 	static int readNExams(String istanceName){
-		
-		int n=0;
+		//WE COUNT THE ROWS OF THE FILE .stu
+		//WE ASSUME THAT EXAMS GO FROM 0 TO N_EXAMS-1
+		int nExams=0;
 		
 		try{
-			LineNumberReader count = new LineNumberReader(new FileReader("./" + istanceName + ".stu"));
-			
-			//TO TEST!!
-			while (count.skip(Long.MAX_VALUE) > 0)
-			   {
-			      // Loop just in case the file is > Long.MAX_VALUE or skip() decides to not read the entire file
-			   }
-
-			n = count.getLineNumber() + 1; // +1 because line index starts at 0  
+			//counting rows of the file. it works, trust me!
+			LineNumberReader count = new LineNumberReader(new FileReader("./" + istanceName + ".exm"));
+			while (count.skip(Long.MAX_VALUE) > 0);
+			nExams = count.getLineNumber() + 1; // +1 because line index starts at 0  
 			count.close();
-		
 		} catch(FileNotFoundException e) {
             System.out.println("FileNotFound");
         } catch(IOException e){
         	System.out.println("IOException.");
         }
 		
-		return n;
+		return nExams;
 	}
 
 	static void generateConflicts(String istanceName, int[][] n){
-		
+		//WE ASSUME THAT STUDENTS GO FROM 0 TO N_EXAMS-1
 		try{
 			//a vector of students that includes in each element
-			//a vector of exams in which the student is enrolled
-			Vector<TreeSet<Integer>> studentList = new Vector<TreeSet<Integer>>();
+			//an automatically ordered list of exams in which the student is enrolled
+			//treeset allows us to insert numbers in an automatically sorted list
+			Vector<TreeSet<Integer>> studentList = new Vector<TreeSet<Integer>>();	
 			
-			//treeset allows us to insert in an automatically sorted list
-			
-			//reading exams of the students
+			//reading exams for each student
 			Scanner in = new Scanner(new File(istanceName + ".stu"));
 
 			while (in.hasNextLine()){	
-			
+				
+				//READ SID WITHOUT INITIAL 's'
 				StringBuilder sb = new StringBuilder(in.next());
 				sb.deleteCharAt(0);
-				int sId = Integer.parseInt(sb.toString()) - 1;//per spostare indice partendo da zero
+				int sId = Integer.parseInt(sb.toString()) - 1;//we start from studentId 0
 				
-				
+				//READ exam FOR THAT sId
 				String s = in.next();
 				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
 				int exam = Integer.parseInt(s);
-			
 			
 				//if the student has never enrolled until now
 				if (sId >= studentList.size()){
@@ -79,6 +73,8 @@ public class EtpSolver {
 				//add the exam in the list
 				studentList.get(sId).add(exam);
 			}
+			
+			//TODO: POPULATE CONFLICT MATRIX n
 			
 			in.close();	
 		} catch(FileNotFoundException e) {
@@ -102,19 +98,15 @@ public class EtpSolver {
 		final String instanceName = args[0];
 		final double timeLimit = Integer.parseInt(args[2]);
 		
-		//initialize counting the rows of instanceXX.exm
 		final int N_EXAMS = readNExams(instanceName);
 		
-		//load from instanceXX.slo
 		final int N_TIMESL = readNTimeslots(instanceName);
 		
 		
 		//Conflict matrix
-		//may be too large
-		int[][] n = new int[N_EXAMS][N_EXAMS];	
-		//load from instanceXX.stu 
+		//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
+		int[][] n = new int[N_EXAMS][N_EXAMS];
 		generateConflicts(instanceName, n);
-		
 		
 
 	}
