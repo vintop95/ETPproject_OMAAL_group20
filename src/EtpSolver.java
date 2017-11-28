@@ -57,17 +57,28 @@ public class EtpSolver {
 			
 			//reading exams of the students
 			Scanner in = new Scanner(new File(istanceName + ".stu"));
-			while (in.hasNextInt()){
-				//the position 0 is always empty
-				//we ignore and start from 1
-				int sId = in.nextInt();
+
+			while (in.hasNextLine()){	
+			
+				StringBuilder sb = new StringBuilder(in.next());
+				sb.deleteCharAt(0);
+				int sId = Integer.parseInt(sb.toString()) - 1;//per spostare indice partendo da zero
+				
+				System.out.println("sid:" + sId);
+				
+				String s = in.next();
+				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
+				int exam = Integer.parseInt(s);
+				
+				System.out.println("exam:" + exam);
+				
 				
 				//if the student has never enrolled until now
-				if (sId > studentList.size()){
+				if (sId >= studentList.size()){
 					studentList.add(new Vector<Integer>());
 				}
 				//add the exam in the list
-				int exam = in.nextInt();
+				
 				studentList.get(sId).add(exam);
 			}
 			
