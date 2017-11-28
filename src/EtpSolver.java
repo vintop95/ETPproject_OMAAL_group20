@@ -53,7 +53,9 @@ public class EtpSolver {
 		try{
 			//a vector of students that includes in each element
 			//a vector of exams in which the student is enrolled
-			Vector<Vector<Integer>> studentList = new Vector<Vector<Integer>>();
+			Vector<TreeSet<Integer>> studentList = new Vector<TreeSet<Integer>>();
+			
+			//treeset allows us to insert in an automatically sorted list
 			
 			//reading exams of the students
 			Scanner in = new Scanner(new File(istanceName + ".stu"));
@@ -64,21 +66,17 @@ public class EtpSolver {
 				sb.deleteCharAt(0);
 				int sId = Integer.parseInt(sb.toString()) - 1;//per spostare indice partendo da zero
 				
-				System.out.println("sid:" + sId);
 				
 				String s = in.next();
 				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
 				int exam = Integer.parseInt(s);
-				
-				System.out.println("exam:" + exam);
-				
-				
+			
+			
 				//if the student has never enrolled until now
 				if (sId >= studentList.size()){
-					studentList.add(new Vector<Integer>());
+					studentList.add(new TreeSet<Integer>());
 				}
 				//add the exam in the list
-				
 				studentList.get(sId).add(exam);
 			}
 			
