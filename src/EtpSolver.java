@@ -1,8 +1,11 @@
 import java.util.*;
 import java.io.*;
 
+<<<<<<< HEAD
 //testtt
 
+=======
+>>>>>>> 9e559257575d3703490a9e6ae1ea20cb1fd6e75e
 
 //TODO: CREATE DEDICATED CLASSES FOR EVERY PROCESS OF THE ALGORITHM
 public class EtpSolver {
