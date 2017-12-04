@@ -7,10 +7,13 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Vector;
 
+//THIS CLASS HAS THE DUTY OF LOADING
+//THE PROBLEMS FROM THE INPUT
 class Problem {
 	private int N_EXAMS;
 	private int N_STUDENTS;
 	private int N_TIMESLOTS;
+	//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
 	private int[][] conflictMatrix;
 	
 	public Problem(String instanceName) {
@@ -20,7 +23,6 @@ class Problem {
 			generateConflicts(instanceName);
 		}
 	}
-	//
 	
 	private int readNTimeslots(String instanceName){
 		int n=0;
@@ -61,6 +63,7 @@ class Problem {
 		
 		return nExams;
 	}
+	
 	private void generateConflicts(String instanceName){
 		//WE ASSUME THAT STUDENTS GO FROM 0 TO N_STUDENTS-1
 		

@@ -1,27 +1,23 @@
 class Population {
-	private Individual[] individuals;
+	//A POPULATION OF populationSize IS COMPOSED BY individuals (POSSIBLE SOLUTIONS)
 	private int populationSize;
+	private Individual[] individuals;
+	
+	//CONSTRUCTOR
+	//initialize: if true, population is filled with random solutions
+	//				otherwise it remains empty
 	public Population(int size, Problem p, boolean initialize) {
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		if(initialize){
 			for(int i=0; i<size(); i++) {
-				Individual newIndividual = new Individual(p);
-				newIndividual.generateIndividual();
-				saveIndividual(i, newIndividual);
+				saveIndividual(i, new Individual(p));
+				getIndividual(i).generateIndividual();
 			}
 		}
 	}
 	
-	public int size() {
-		return populationSize;
-	}
-	public void saveIndividual(int index, Individual indiv) {
-		individuals[index] = indiv;
-	}
-	public Individual getIndividual(int index) {
-		return individuals[index];
-	}
+	//find the solution with the maximum fit
 	public Individual getFittest() {
 		Individual fittest = individuals[0];
 		// Loop through individuals to find fittest
@@ -32,4 +28,19 @@ class Population {
 		}
 		return fittest;
 	}
+		
+	
+	//TO ACCESS TO AN INDIVIDUAL
+	public void saveIndividual(int index, Individual indiv) {
+		individuals[index] = indiv;
+	}
+	public Individual getIndividual(int index) {
+		return individuals[index];
+	}
+		
+	//OTHER METHODS
+	public int size() {
+		return populationSize;
+	}
+	
 }

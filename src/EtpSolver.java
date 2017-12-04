@@ -33,8 +33,8 @@ public class EtpSolver {
 		final double timeLimit = Integer.parseInt(args[2]);
 		long startTime= System.currentTimeMillis();
 		
-		//Conflict matrix
-		//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
+		
+		//WE DEFINE A PROBLEM AND WE INSERT IT IN THE ALGORITHM (STATIC CLASS)
 		Problem p = new Problem(instanceName);
 		GeneticAlgorithm.setProblem(p);
 		Population myPop = new Population(popSize, p, true);
@@ -47,9 +47,6 @@ public class EtpSolver {
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
 		System.out.println(myPop.getFittest());
-		//generatePopulation(population, p)
-		//TODO: FUNCTION TO CALCULATE OBJECIVE FUNCT VALUE OF A S
-		
 	}
 	
 	private static double updateTimeElapsed(long startTime){

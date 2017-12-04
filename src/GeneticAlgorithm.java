@@ -15,29 +15,40 @@ class GeneticAlgorithm {
 	public static int getNonImprovingIterationsCount(){
 		return nonImprovingIterationsCount;
 	}
+	
+	//methods:
+	
 	public static Population evolvePopulation(Population pop) {
 		//create a new uninitialized population
 		Population newPopulation = new Population(pop.size(), problem, false);
 		if(elitism) {
+			//take the fittest to the next population
 			newPopulation.saveIndividual(0, pop.getFittest());
 		}
 		
+		//elitismOffset: for not choosing the fittest for the next tournament
+		//what, a tournament?
 		int elitismOffset;
 		if (elitism) {
 			elitismOffset = 1;
 		} else {
 			elitismOffset = 0;
 		}
+		
 		for (int i = elitismOffset; i < pop.size(); i++) {
+			//choose the survivors of the tournament
 			Individual indiv1 = tournamentSelection(pop);
 			Individual indiv2 = tournamentSelection(pop);
 			Individual newIndiv = crossover(indiv1, indiv2);
 			newPopulation.saveIndividual(i, newIndiv);
 		}
+		
 		// Mutate population
 		for (int i = elitismOffset; i < newPopulation.size(); i++) {
 			mutate(newPopulation.getIndividual(i));
 		}
+		
+		//to check if we are in a local minimum
 		if(pop.getFittest().getCost() == newPopulation.getFittest().getCost()) {
 			nonImprovingIterationsCount++;
 		}
@@ -48,7 +59,8 @@ class GeneticAlgorithm {
 	}
 	
 	// Crossover individuals
-	/*private static Individual crossover(Individual indiv1, Individual indiv2) {
+	
+	private static Individual crossover(Individual indiv1, Individual indiv2) {
 		Individual newSol = new Individual(problem);
 		//select two cutting point
 		int src = rand.nextInt(problem.getExams());
@@ -69,8 +81,9 @@ class GeneticAlgorithm {
 			}
 		}
 		return newSol;
-	}*/
-	private static Individual crossover(Individual indiv1, Individual indiv2) {
+	}
+	
+	/*private static Individual crossover(Individual indiv1, Individual indiv2) {
 		Individual newSol = new Individual(problem);
 		for (int i = 0; i < indiv1.size(); i++) {
 			if (Math.random() <= uniformRate) {
@@ -80,7 +93,9 @@ class GeneticAlgorithm {
 			}
 		}
 		return newSol;
-	}
+	}*/
+	
+	
 	// Mutate an individual
 	private static void mutate(Individual indiv) {
 		// Loop through genes
@@ -92,11 +107,13 @@ class GeneticAlgorithm {
 			}
 		}
 	}
+	
 	// Select individuals for crossover
+	// Tournament is a nice term to describe the Hunger Games of life
 	private static Individual tournamentSelection(Population pop) {
-		// Create a tournament population
-		 
+		// Create a tournament population		 
 		Population tournament = new Population(tournamentSize, problem,  false);
+		
 		// For each place in the tournament get a random individual 
 		for (int i = 0; i < tournamentSize; i++) {
 			//we select a random individual from previous population
