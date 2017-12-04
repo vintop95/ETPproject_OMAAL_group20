@@ -1,6 +1,8 @@
 import java.util.*;
 //todo: comparatore di soluzioni
 
+
+
 class Individual {
 	//EXPLANATION OF THE CLASS
 	//0) GENERICS:
@@ -27,7 +29,6 @@ class Individual {
 	//fitness: value of how much a solution is good, in this case the objective function value
 	private double fitness = 0.0;
 	
-	
 	//2) METHODS
 	//CONSTRUCTOR
 	public Individual(Problem p) {
@@ -46,7 +47,10 @@ class Individual {
 		for(int e=0; e<genes.length; e++) {
 			//we assign the random timeslot chosen for the exam e of the solution
 			genes[e] = rand.nextInt(numOfAlleles);
+			
 		}
+		System.out.println("Num of confl: " + FitnessFunct.nOfConflicts(this));
+		this.toString();
 	}
 	
 	//TO REPRESENT A SOLUTION IN COMMAND LINE
@@ -87,7 +91,7 @@ class Individual {
 	protected double getCost() {
 		return FitnessFunct.getCost(this);
 	}
-	private boolean isLegal() {
+	protected boolean isLegal() {
 		return FitnessFunct.isLegal(this);
 	}
 }

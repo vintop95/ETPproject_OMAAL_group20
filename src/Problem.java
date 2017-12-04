@@ -3,9 +3,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.util.Comparator;
 import java.util.NoSuchElementException;
+import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.Vector;
+
+
 
 //THIS CLASS HAS THE DUTY OF LOADING
 //THE PROBLEMS FROM THE INPUT
@@ -127,4 +131,6 @@ class Problem {
 	public int getExams() {return N_EXAMS;}
 	public int getStudents() {return N_STUDENTS;}
 	public int getTimeslots() {return N_TIMESLOTS;}
+
+	
 }// end of class
