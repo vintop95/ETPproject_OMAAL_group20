@@ -60,7 +60,6 @@ class Individual {
 	}
 	
 	
-	
 	//TO REPRESENT A SOLUTION IN COMMAND LINE
 	@Override
 	public String toString() {
@@ -69,9 +68,9 @@ class Individual {
 			chromosome += (i + 1) + " " + (genes[i] + 1) + "\n";
 		}
 		if(isLegal())
-			chromosome += "LEGAL" + FitnessFunct.nOfConflicts(this) + "\n";
+			chromosome += "LEGAL (n of confl: " + FitnessFunct.nOfConflicts(this) + ")\n";
 		else
-			chromosome += "ILLEGAL" + FitnessFunct.nOfConflicts(this) + "\n";
+			chromosome += "ILLEGAL (n of confl: " + FitnessFunct.nOfConflicts(this) + ")\n";
 		chromosome += "Penalty: " + getCost();
 		return chromosome;
 	}
@@ -114,54 +113,33 @@ class Individual {
 		PriorityQueue<SortedExam> E1 = new PriorityQueue<SortedExam>(p.getSortedExams());
 		HashSet<Integer> T = p.getTimeslotSet();
 		
-		while(! E1.isEmpty() ){
-			
-			if(E1.size() == 1)
-				System.out.println("E1 has only 1 element");
-			
-			
+		while(! E1.isEmpty() ){			
 			//pick the most 'greedy' exam
 			SortedExam e1 = E1.poll();//not a copy, the same e1
 			
-			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);
-			
+			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);	
 			
 			if( ! e1TimeslotSet.isEmpty()){
+				//assign e1 in a random timeslot
 				Iterator<Integer> it = e1TimeslotSet.iterator();
 				for (int t = rand.nextInt(e1TimeslotSet.size());
 						t > 0; t--){
-					if(it.hasNext())
-						it.next();
-					else
-						System.out.println("no it");
+					it.next();
 				}
-				//TODO: check if it goes out of bound
-				
-				//assign e1 in the random timeslot
 				genes[e1.id] = it.next();
-				//System.out.println("e1: " + e1.id + ", timeslot: " + genes[e1.id]);
 				
 			} else {
-				
-				System.out.println("not feasible...");
-				
-				
-				//deschedule exams e2 and reinsert e2 in E1
+				//deschedule exams e2 and reinsert e1 and all e2 in E1
 				E1.add(e1);
 				for(int e2 = 0; e2 < p.getExams(); e2++){
 					if(p.areExamsInConflicts(e1.id, e2)){
-						
 						genes[e2] = -2;
 						SortedExam se = new SortedExam(p.getSortedExam(e2));
-						
 						E1.add(se);
 					}
 				}
 				
 			}
-			
-			if(isLegal())
-				System.out.println("legale");
 		} //end while
 		
 		System.out.println(this.toString());
