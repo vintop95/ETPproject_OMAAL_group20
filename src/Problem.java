@@ -4,27 +4,65 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.PriorityQueue;
 import java.util.Scanner;
 import java.util.Vector;
 
+//TODO: GIVE this class the dignity to live in a new file?
+class SortedExam implements Comparable<SortedExam>{
+	final public int id;       //n of exams
+	final public int nOfConfl; //key
+	public int nSlotsFree; //calculate when you check the exams in conflict
+						   //in an iteration of the algorithm to generate a sol
+	public SortedExam(int id, int nOfConfl, int nSlotsFree){
+		this.id = id;
+		this.nOfConfl = nOfConfl;
+		this.nSlotsFree = nSlotsFree;
+	}
+	
+	public SortedExam(SortedExam old){
+		this.id = old.id;
+		this.nOfConfl = old.nOfConfl;
+		this.nSlotsFree = old.nSlotsFree;
+	}
+	
+	//TODO: we shall sort by nSlotsFree???
+	@Override
+	public int compareTo(SortedExam e2){
+		//sorted reversed in order to get first the exams with most conflicts
+		//in the priority queue
+		if(this.nOfConfl < e2.nOfConfl)
+			return 1;
+		else if(this.nOfConfl == e2.nOfConfl)
+			return 0;
+		else
+			return -1;
+	}
+}
 
 
 //THIS CLASS HAS THE DUTY OF LOADING
 //THE PROBLEMS FROM THE INPUT
-class Problem {
+public class Problem {
 	private int N_EXAMS;
 	private int N_STUDENTS;
 	private int N_TIMESLOTS;
 	//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
 	private int[][] conflictMatrix;
+	//needed 2 forms for algorithmic reasons
+	private PriorityQueue<SortedExam> sortedExams;
+	private SortedExam[] arraySortedExams;
+	private HashSet<Integer> timeslotSet;
 	
 	public Problem(String instanceName) {
 		if(instanceName != null) {
 			N_EXAMS = readNExams(instanceName);
 			N_TIMESLOTS = readNTimeslots(instanceName);
 			generateConflicts(instanceName);
+			generateSortedExams();
+			generateTimeslotSet();
 		}
 	}
 	
@@ -123,6 +161,7 @@ class Problem {
 	public int getConflicts(int e1, int e2) {
 		return conflictMatrix[e1][e2];
 	}
+	
 	public boolean areExamsInConflicts(int e1, int e2) {
 		if(getConflicts(e1, e2) > 0)
 			return true;
@@ -131,6 +170,37 @@ class Problem {
 	public int getExams() {return N_EXAMS;}
 	public int getStudents() {return N_STUDENTS;}
 	public int getTimeslots() {return N_TIMESLOTS;}
-
+	public PriorityQueue<SortedExam> getSortedExams() {return sortedExams;}
+	public SortedExam getSortedExam(int i) {return (SortedExam) arraySortedExams[i];}
+	public HashSet<Integer> getTimeslotSet() {return timeslotSet;}
+	
+	
+	//TODO: rimuovi questa intestazione
+	//+++inseriti da vincenzo 6-12 after revelations+++
+	
+	private void generateSortedExams(){
+		sortedExams = new PriorityQueue<SortedExam>();
+		arraySortedExams = new SortedExam[N_EXAMS];
+		int nOfConfl;
+		for(int e1=0; e1<N_EXAMS; e1++){
+			nOfConfl=0;
+			for(int e2=0; e2<N_EXAMS; e2++){
+				if (areExamsInConflicts(e1, e2)){
+					nOfConfl++;
+				}
+			}
+			SortedExam ex = new SortedExam(e1, nOfConfl, N_TIMESLOTS);
+			sortedExams.add(ex);
+			arraySortedExams[e1] = ex;
+		}
+		
+	}
+	
+	private void generateTimeslotSet(){
+		timeslotSet = new HashSet<Integer>(N_TIMESLOTS);
+		for(int t=0; t<N_TIMESLOTS; t++){
+			timeslotSet.add(t);
+		}
+	}
 	
 }// end of class

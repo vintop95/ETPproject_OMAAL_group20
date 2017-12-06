@@ -40,6 +40,7 @@ class GeneticAlgorithm {
 	private static Comparator<Couple> comp = new CoupleComparator();
 	private static PriorityQueue<Couple> individualsSortedByFitness = new PriorityQueue<Couple>(11, comp);
 	
+	
 	public static void setProblem(Problem p) {
 		GeneticAlgorithm.problem = p;
 		FitnessFunct.setProblem(p);
@@ -196,8 +197,21 @@ class GeneticAlgorithm {
 		return fittest;
 	}
 	
+	
+	
 	private static Individual randomIndividual(Population pop){
 		int indexRandomInd = rand.nextInt(pop.size());
 		return pop.getIndividual(indexRandomInd);
 	}
+	
+	
+	
+	
+	
+	//+++inseriti da vincenzo 6-12 after revelations+++
+
+	
+	
+	
+	
 }

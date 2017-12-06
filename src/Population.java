@@ -10,9 +10,10 @@ class Population {
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		if(initialize){
+			
 			for(int i=0; i<size(); i++) {
 				saveIndividual(i, new Individual(p));
-				getIndividual(i).generateIndividual();
+				getIndividual(i).generateFeasibleIndividual();
 			}
 		}
 	}

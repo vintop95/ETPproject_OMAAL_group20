@@ -28,13 +28,19 @@ class Individual {
 	private Vector<HashSet<Integer>> timeslots;
 	//fitness: value of how much a solution is good, in this case the objective function value
 	private double fitness = 0.0;
+	Problem p;
+	
+	
 	
 	//2) METHODS
 	//CONSTRUCTOR
 	public Individual(Problem p) {
+		this.p = p;
 		numOfGenes = p.getExams();
 		numOfAlleles = p.getTimeslots();
 		genes = new int[numOfGenes];
+		Arrays.fill(genes, -1); //set all timeslots to an undefined value
+		
 		//INITIALIZING AN EMPTY SET OF TIMESLOTS
 		timeslots = new Vector<HashSet<Integer>>(numOfAlleles);
 		for(int i=0; i<numOfAlleles; i++) {
@@ -53,6 +59,8 @@ class Individual {
 		this.toString();
 	}
 	
+	
+	
 	//TO REPRESENT A SOLUTION IN COMMAND LINE
 	@Override
 	public String toString() {
@@ -61,9 +69,9 @@ class Individual {
 			chromosome += (i + 1) + " " + (genes[i] + 1) + "\n";
 		}
 		if(isLegal())
-			chromosome += "LEGAL\n";
+			chromosome += "LEGAL" + FitnessFunct.nOfConflicts(this) + "\n";
 		else
-			chromosome += "ILLEGAL\n";
+			chromosome += "ILLEGAL" + FitnessFunct.nOfConflicts(this) + "\n";
 		chromosome += "Penalty: " + getCost();
 		return chromosome;
 	}
@@ -93,5 +101,91 @@ class Individual {
 	}
 	protected boolean isLegal() {
 		return FitnessFunct.isLegal(this);
+	}
+	
+	
+	
+	//TODO: rimuovi questa intestazione
+	//+++inseriti da vincenzo 6-12 after revelations+++
+	
+	
+	public void generateFeasibleIndividual(){
+		
+		PriorityQueue<SortedExam> E1 = new PriorityQueue<SortedExam>(p.getSortedExams());
+		HashSet<Integer> T = p.getTimeslotSet();
+		
+		while(! E1.isEmpty() ){
+			
+			if(E1.size() == 1)
+				System.out.println("E1 has only 1 element");
+			
+			
+			//pick the most 'greedy' exam
+			SortedExam e1 = E1.poll();//not a copy, the same e1
+			
+			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);
+			
+			
+			if( ! e1TimeslotSet.isEmpty()){
+				Iterator<Integer> it = e1TimeslotSet.iterator();
+				for (int t = rand.nextInt(e1TimeslotSet.size());
+						t > 0; t--){
+					if(it.hasNext())
+						it.next();
+					else
+						System.out.println("no it");
+				}
+				//TODO: check if it goes out of bound
+				
+				//assign e1 in the random timeslot
+				genes[e1.id] = it.next();
+				//System.out.println("e1: " + e1.id + ", timeslot: " + genes[e1.id]);
+				
+			} else {
+				
+				System.out.println("not feasible...");
+				
+				
+				//deschedule exams e2 and reinsert e2 in E1
+				E1.add(e1);
+				for(int e2 = 0; e2 < p.getExams(); e2++){
+					if(p.areExamsInConflicts(e1.id, e2)){
+						
+						genes[e2] = -2;
+						SortedExam se = new SortedExam(p.getSortedExam(e2));
+						
+						E1.add(se);
+					}
+				}
+				
+			}
+			
+			if(isLegal())
+				System.out.println("legale");
+		} //end while
+		
+		System.out.println(this.toString());
+	}
+	
+	//it returns the set of timeslots complementary to:
+	//timeslots in which are scheduled all e2 (in conflict with e1)
+	private HashSet<Integer> generateE1TimeslotSet(SortedExam e1, HashSet<Integer> timeslotSet){
+		//I clone the timeslot set complete, in order to remove bad timeslots from there
+		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
+		
+		for(int e2 = 0; e2 < p.getExams(); e2++){
+			if(p.areExamsInConflicts(e1.id, e2) && genes[e2] >= 0){
+				//we should remove the timeslot because it's not
+				//available anymore for e1
+				e1TimeslotSet.remove(genes[e2]);
+			}
+		}
+		
+		//TODO: check if variable nSlotsFree is shared
+		//among all structures in the algorithm
+		//TODO; nSlotsFree is potentially useless
+		e1.nSlotsFree = e1TimeslotSet.size();
+		
+		return e1TimeslotSet;
 	}
 }
