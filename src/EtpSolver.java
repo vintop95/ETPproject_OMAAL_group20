@@ -27,10 +27,12 @@ public class EtpSolver {
 			System.out.println("usage: java -jar EtpSolver.jar instancename -t timelimit");
 			System.exit(-1);
 		}
-		final int popSize = 50;
-		final int maxNonImprovingIterations = 1000;
+		
+		final int popSize = 6;
+		//final int maxNonImprovingIterations = 1000;
 		final String instanceName = args[0];
 		final double timeLimit = Integer.parseInt(args[2]);
+		//we start counting
 		long startTime= System.currentTimeMillis();
 		
 		
@@ -38,10 +40,21 @@ public class EtpSolver {
 		Problem p = new Problem(instanceName);
 		GeneticAlgorithm.setProblem(p);
 		Population myPop = new Population(popSize, p, true);
+		Individual fittest = myPop.getFittest();
+		double currentOptimalCost = fittest.getCost();
+		
 		double timeElapsed = updateTimeElapsed(startTime);
 		while(timeElapsed < timeLimit /* && 
 			GeneticAlgorithm.getNonImprovingIterationsCount() < maxNonImprovingIterations*/){
+			
+			
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
+			fittest = myPop.getFittest();
+			
+			if(fittest.getCost() < currentOptimalCost){
+				currentOptimalCost = fittest.getCost();
+				System.out.println("NEW better solution: " + fittest.toString());
+			}
 			timeElapsed = updateTimeElapsed(startTime);
 			
 		}

@@ -9,7 +9,7 @@ class Individual {
 	//individual = chromosome: a solution, a timetable, a set of timeslots composed by exams
 	//gene: a component of the solution, in this case an exam
 	//allele: the value of the gene, in this case a timeslot relative to an exam
-	//fitness: the objective function value
+	//fitness: how good is a solution. It depends from the objective function value
 	
 	//1) ATTRIBUTES
 	//rand: useful to get random numbers
@@ -24,36 +24,46 @@ class Individual {
 	//b) timeslots: it's the second possible way to represent the solution:
 	//			 a vector in which each element is a timeslot
 	//			 hashset<Integer> is a set of exams in that timeslot
-	private int[] genes;
-	private Vector<HashSet<Integer>> timeslots;
+	private Vector<Integer> genes;
+	
 	//fitness: value of how much a solution is good, in this case the objective function value
 	private double fitness = 0.0;
 	Problem p;
+	
+	//this is the set of exams TO SCHEDULATE
+	PriorityQueue<SortedExam> examToSchedule;
 	
 	
 	
 	//2) METHODS
 	//CONSTRUCTOR
+	public Individual(Individual ind){
+		this.numOfGenes = ind.numOfGenes;
+		this.numOfAlleles = ind.numOfAlleles;
+		this.p = ind.p;
+		this.genes = new Vector<Integer>(ind.genes);
+		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
+	}
+	
 	public Individual(Problem p) {
 		this.p = p;
 		numOfGenes = p.getExams();
 		numOfAlleles = p.getTimeslots();
-		genes = new int[numOfGenes];
-		Arrays.fill(genes, -1); //set all timeslots to an undefined value
+		//set all timeslots to an undefined value
+		genes = new Vector<Integer>();
 		
-		//INITIALIZING AN EMPTY SET OF TIMESLOTS
-		timeslots = new Vector<HashSet<Integer>>(numOfAlleles);
-		for(int i=0; i<numOfAlleles; i++) {
-			timeslots.add(new HashSet<Integer>());
+		for(int i=0; i<numOfGenes; i++){
+			genes.add(-1);
 		}
+		
+		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 	}
 	
 	//TO GENERATE THE SOLUTION RANDOMLY (only in the form a)
 	public void generateIndividual() {
-		for(int e=0; e<genes.length; e++) {
+		for(int e=0; e<size(); e++) {
 			//we assign the random timeslot chosen for the exam e of the solution
-			genes[e] = rand.nextInt(numOfAlleles);
-			
+			setGene(e, rand.nextInt(numOfAlleles));
 		}
 		System.out.println("Num of confl: " + FitnessFunct.nOfConflicts(this));
 		this.toString();
@@ -65,7 +75,7 @@ class Individual {
 	public String toString() {
 		String chromosome = "";
 		for(int i=0; i<size(); i++) {
-			chromosome += (i + 1) + " " + (genes[i] + 1) + "\n";
+			chromosome += (i + 1) + " " + (getGene(i) + 1) + "\n";
 		}
 		if(isLegal())
 			chromosome += "LEGAL (n of confl: " + FitnessFunct.nOfConflicts(this) + ")\n";
@@ -77,15 +87,15 @@ class Individual {
 		
 	//OTHER METHODS
 	public int size() {
-		return genes.length;
+		return genes.size();
 	}
 	
 	public int getGene(int i) {
-		return genes[i];
+		return genes.get(i);
 	}
 	
 	public void setGene(int i, int allele) {
-		genes[i] = allele;
+		genes.set(i, allele);
 	}
 	
 	public double getFitness() {
@@ -102,47 +112,73 @@ class Individual {
 		return FitnessFunct.isLegal(this);
 	}
 	
-	
+	public void deschedulateRandomExams(double percOfExamsToDesched){
+		
+		int nOfExamsToDesched = (int) (percOfExamsToDesched * size());
+		
+		List<Integer> examsToDeschedulate = new ArrayList<Integer>(p.getExamSet());
+		
+		//it shuffles the list
+		Collections.shuffle(examsToDeschedulate);
+		
+		Iterator<Integer> it = examsToDeschedulate.iterator();
+		for(int i=0; i<nOfExamsToDesched; i++){
+			int exId = it.next();
+			setGene( exId, -1);
+			//set exams to schedule for the feasible generator
+			SortedExam se = new SortedExam(p.getSortedExam(exId));
+			examToSchedule.add(se);		
+		}
+	}
 	
 	//TODO: rimuovi questa intestazione
 	//+++inseriti da vincenzo 6-12 after revelations+++
 	
 	
+	
+	//TODO: limit number of iteration OF generateFeasibleIndividual
 	public void generateFeasibleIndividual(){
 		
-		PriorityQueue<SortedExam> E1 = new PriorityQueue<SortedExam>(p.getSortedExams());
+		//examToSchedule contains the exams to schedule
+		
 		HashSet<Integer> T = p.getTimeslotSet();
 		
-		while(! E1.isEmpty() ){			
+		while(! examToSchedule.isEmpty() ){			
 			//pick the most 'greedy' exam
-			SortedExam e1 = E1.poll();//not a copy, the same e1
+			SortedExam e1 = examToSchedule.poll();//not a copy, the same e1
 			
 			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);	
 			
 			if( ! e1TimeslotSet.isEmpty()){
 				//assign e1 in a random timeslot
+				
 				Iterator<Integer> it = e1TimeslotSet.iterator();
 				for (int t = rand.nextInt(e1TimeslotSet.size());
 						t > 0; t--){
 					it.next();
 				}
-				genes[e1.id] = it.next();
+				
+				int pickedTimeslot = it.next();
+				
+				setGene(e1.id, pickedTimeslot);
 				
 			} else {
 				//deschedule exams e2 and reinsert e1 and all e2 in E1
-				E1.add(e1);
+				examToSchedule.add(e1);
 				for(int e2 = 0; e2 < p.getExams(); e2++){
 					if(p.areExamsInConflicts(e1.id, e2)){
-						genes[e2] = -2;
+						setGene(e2, -1);
+						//get sorted exam with id=e2
 						SortedExam se = new SortedExam(p.getSortedExam(e2));
-						E1.add(se);
+						//and reinsert it to the list of exams to schedule
+						examToSchedule.add(se);
 					}
 				}
 				
 			}
 		} //end while
 		
-		System.out.println(this.toString());
+		//System.out.println(this.toString());
 	}
 	
 	//it returns the set of timeslots complementary to:
@@ -152,10 +188,10 @@ class Individual {
 		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
 		
 		for(int e2 = 0; e2 < p.getExams(); e2++){
-			if(p.areExamsInConflicts(e1.id, e2) && genes[e2] >= 0){
+			if(p.areExamsInConflicts(e1.id, e2) && getGene(e2) >= 0){
 				//we should remove the timeslot because it's not
 				//available anymore for e1
-				e1TimeslotSet.remove(genes[e2]);
+				e1TimeslotSet.remove(getGene(e2));
 			}
 		}
 		

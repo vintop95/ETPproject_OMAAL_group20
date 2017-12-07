@@ -3,12 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
-import java.util.Scanner;
-import java.util.Vector;
+import java.util.*;
 
 //TODO: GIVE this class the dignity to live in a new file?
 class SortedExam implements Comparable<SortedExam>{
@@ -55,6 +50,7 @@ public class Problem {
 	private PriorityQueue<SortedExam> sortedExams;
 	private SortedExam[] arraySortedExams;
 	private HashSet<Integer> timeslotSet;
+	private List<Integer> examSet;
 	
 	public Problem(String instanceName) {
 		if(instanceName != null) {
@@ -62,7 +58,7 @@ public class Problem {
 			N_TIMESLOTS = readNTimeslots(instanceName);
 			generateConflicts(instanceName);
 			generateSortedExams();
-			generateTimeslotSet();
+			generateSets();
 		}
 	}
 	
@@ -173,6 +169,7 @@ public class Problem {
 	public PriorityQueue<SortedExam> getSortedExams() {return sortedExams;}
 	public SortedExam getSortedExam(int i) {return (SortedExam) arraySortedExams[i];}
 	public HashSet<Integer> getTimeslotSet() {return timeslotSet;}
+	public List<Integer> getExamSet() {return examSet;}
 	
 	
 	//TODO: rimuovi questa intestazione
@@ -196,10 +193,16 @@ public class Problem {
 		
 	}
 	
-	private void generateTimeslotSet(){
+	private void generateSets(){
 		timeslotSet = new HashSet<Integer>(N_TIMESLOTS);
+		examSet = new ArrayList<Integer>(N_EXAMS);
+		
 		for(int t=0; t<N_TIMESLOTS; t++){
 			timeslotSet.add(t);
+		}
+		
+		for(int e=0; e<N_EXAMS; e++){
+			examSet.add(e);
 		}
 	}
 	

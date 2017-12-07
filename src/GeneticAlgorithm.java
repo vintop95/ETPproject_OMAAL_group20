@@ -1,8 +1,8 @@
 import java.util.*;
 
-class Couple{
+class Couple implements Comparable<Couple>{
 	private double key; //fitness
-	private Individual val;
+	private Individual val; //individual
 	public Couple(double k, Individual v){
 		key = k;
 		val = v;
@@ -15,14 +15,14 @@ class Couple{
 	public Individual getVal(){
 		return val;
 	}
-}
-class CoupleComparator implements Comparator<Couple>{
-	public int compare(Couple c1, Couple c2){
+	
+	@Override
+	public int compareTo(Couple c2){
 		//it's inverted for having in the head
 		//of the PriorityQueue the biggest key
-		if (c1.getKey() < c2.getKey())
+		if (getKey() < c2.getKey())
 			return 1;
-		else if (c1.getKey() > c2.getKey())
+		else if (getKey() > c2.getKey())
 			return -1;
 		else
 			return 0;
@@ -30,15 +30,15 @@ class CoupleComparator implements Comparator<Couple>{
 }
 
 class GeneticAlgorithm {
-	private static final double elitismRate = 0.5;
+	private static final double elitismRate = 0.2;
 	private static final double uniformRate = 0.5;
 	private static final double mutationRate = 0.15;
-	private static final boolean elitism = true;
+	private static final double maxDeschedulationRate = 0.75;
 	private static Problem problem;
 	private static final Random rand = new Random();
 	private static int nonImprovingIterationsCount = 0;
-	private static Comparator<Couple> comp = new CoupleComparator();
-	private static PriorityQueue<Couple> individualsSortedByFitness = new PriorityQueue<Couple>(11, comp);
+	
+	private static PriorityQueue<Couple> individualsSortedByFitness = new PriorityQueue<Couple>();
 	
 	
 	public static void setProblem(Problem p) {
@@ -51,19 +51,19 @@ class GeneticAlgorithm {
 	
 	//methods:
 	
-	public static double getSummary(Population pop){
-		double nLegals = 0;
-		for(int i=0; i< pop.size();i++){
-			if (pop.getIndividual(i).isLegal())
-				nLegals++;
-		}
-		return nLegals / pop.size();
-	}
+//	public static double getSummary(Population pop){
+//		double nLegals = 0;
+//		for(int i=0; i< pop.size();i++){
+//			if (pop.getIndividual(i).isLegal())
+//				nLegals++;
+//		}
+//		return nLegals / pop.size();
+//	}
 	
 	static int nOfCycles = 0;
 	public static Population evolvePopulation(Population pop) {
 		nOfCycles++;
-		System.out.println(nOfCycles + ")Perc of legal sol: " + getSummary(pop));
+		//System.out.println(nOfCycles);
 		
 		for(int i=0; i<pop.size(); i++){
 			individualsSortedByFitness.add(new Couple(pop.getIndividual(i).getFitness(), pop.getIndividual(i)));
@@ -81,28 +81,13 @@ class GeneticAlgorithm {
 		
 		for(int i=elitePopSize; i< pop.size(); i++){
 			Individual ind1 = randomIndividual(pop);
-			Individual ind2 = randomIndividual(pop);
-			Individual newInd = crossover(ind1, ind2);
+			//Individual ind2 = randomIndividual(pop);
+			//Individual newInd = crossover(ind1, ind2);
+			Individual newInd = deschedulingOperator(ind1, rand.nextDouble() * maxDeschedulationRate);
 			newPopulation.saveIndividual(i, newInd);
 		}
 		
-		/* we don't use this now
-		if(elitism) {
-			//take the fittest to the next population
-			newPopulation.saveIndividual(0, pop.getFittest());
-		}
-		
-		
-		//elitismOffset: for not choosing the fittest for the next tournament
-		//what, a tournament?
-		int elitismOffset;
-		if (elitism) {
-			elitismOffset = 1;
-		} else {
-			elitismOffset = 0;
-		}
-		
-		
+		/*			
 		for (int i = 0; i < pop.size(); i++) {
 			//choose the survivors of the tournament
 			Individual indiv1 = tournamentSelection(pop);
@@ -113,10 +98,10 @@ class GeneticAlgorithm {
 		*/
 		
 		// Mutate population
-		for (int i = 0; i < newPopulation.size(); i++) {
-			mutate(newPopulation.getIndividual(i));
-		}
-		
+//		for (int i = 0; i < newPopulation.size(); i++) {
+//			mutate(newPopulation.getIndividual(i));
+//		}
+	
 		//to check if we are in a local minimum
 		if(pop.getFittest().getCost() == newPopulation.getFittest().getCost()) {
 			nonImprovingIterationsCount++;
@@ -166,8 +151,17 @@ class GeneticAlgorithm {
 	}
 	
 	
+	//used to go in a neighbor FROM A indiv FEASIBLE
+	private static Individual deschedulingOperator(Individual indiv, double deschedulationRate){
+		Individual newInd = new Individual(indiv);
+		newInd.deschedulateRandomExams(deschedulationRate);
+		newInd.generateFeasibleIndividual();
+		return newInd;
+	}
+	
+	
 	// Mutate an individual
-	private static void mutate(Individual indiv) {
+	/*private static void mutate(Individual indiv) {
 		// Loop through genes
 		for (int i = 0; i < indiv.size(); i++) {
 			if (Math.random() <= mutationRate) {
@@ -176,11 +170,11 @@ class GeneticAlgorithm {
 				indiv.setGene(i, allele);
 			}
 		}
-	}
+	}*/
 	
 	// Select individuals for crossover
 	// Tournament is a nice term to describe the Hunger Games of life
-	private static Individual tournamentSelection(Population pop) {
+	/*private static Individual tournamentSelection(Population pop) {
 		// Create a tournament population
 		final int tournamentSize = pop.size() / 10;
 		Population tournament = new Population(tournamentSize, problem,  false);
@@ -195,7 +189,7 @@ class GeneticAlgorithm {
 		// Get the fittest
 		Individual fittest = tournament.getFittest();
 		return fittest;
-	}
+	}*/
 	
 	
 	
@@ -203,14 +197,6 @@ class GeneticAlgorithm {
 		int indexRandomInd = rand.nextInt(pop.size());
 		return pop.getIndividual(indexRandomInd);
 	}
-	
-	
-	
-	
-	
-	//+++inseriti da vincenzo 6-12 after revelations+++
-
-	
 	
 	
 	
