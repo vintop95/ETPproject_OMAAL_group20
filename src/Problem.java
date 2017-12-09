@@ -4,6 +4,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.*;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
 
 //TODO: GIVE this class the dignity to live in a new file?
 class SortedExam implements Comparable<SortedExam>{
@@ -204,6 +206,42 @@ public class Problem {
 		for(int e=0; e<N_EXAMS; e++){
 			examSet.add(e);
 		}
+	}
+	
+	public void CreateOutputFile(String instanceName) { //metodo che crea il file di output vuoto e verifica che sia possibile crearlo
+		try{
+			File file = new File(instanceName + ".sol");
+			if (file.createNewFile())
+	            System.out.println("File " + instanceName + " created");
+	        else
+	            System.out.println("File " + instanceName + " can't be created");
+		 } catch (IOException e) {
+		        e.printStackTrace();
+		    }	
+	}
+	
+	public void generateOutput(String instanceName, double timeElapsed, Individual fittest ) { //metodo che scrive l'output sul file vuoto creato
+		int count=fittest.getNumbOfGenes(); //nuova funzione nella classe Individual
+		try{
+			FileWriter fw = new FileWriter(instanceName + ".sol");
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write("Best solution found in " + timeElapsed + " seconds:\r\n ");
+			for(int i=0;i<count;i++) {
+			bw.write((i+1) + "  " + (fittest.getGene(i)+1) + "\r\n");
+			}
+			if(fittest.isLegal())
+				bw.write("LEGAL (n of confl: " + FitnessFunct.nOfConflicts(fittest) + ")\r\n");
+			else
+				bw.write("ILLEGAL (n of confl: " + FitnessFunct.nOfConflicts(fittest) + ")\r\n");
+			bw.write("Penalty: " + fittest.getCost());
+			bw.flush();
+			bw.close();
+	     
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+		
+		
 	}
 	
 }// end of class
