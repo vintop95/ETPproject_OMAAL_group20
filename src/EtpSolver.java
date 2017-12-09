@@ -1,4 +1,7 @@
-
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 //TODO: CREATE DEDICATED CLASSES FOR EVERY PROCESS OF THE ALGORITHM
 
@@ -54,12 +57,16 @@ public class EtpSolver {
 			if(fittest.getCost() < currentOptimalCost){
 				currentOptimalCost = fittest.getCost();
 				System.out.println("NEW better solution: " + fittest.toString());
+				
 			}
 			timeElapsed = updateTimeElapsed(startTime);
 			
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
 		System.out.println(myPop.getFittest());
+		p.CreateOutputFile(instanceName); //Richiamo le funzioni relative alla creazione del file di output
+		p.generateOutput(instanceName,timeElapsed, myPop.getFittest());
+		
 	}
 	
 	private static double updateTimeElapsed(long startTime){
