@@ -131,10 +131,6 @@ class Individual {
 		}
 	}
 	
-	//TODO: rimuovi questa intestazione
-	//+++inseriti da vincenzo 6-12 after revelations+++
-	
-	
 	
 	//TODO: limit number of iteration OF generateFeasibleIndividual
 	public void generateFeasibleIndividual(){
@@ -201,9 +197,5 @@ class Individual {
 		e1.nSlotsFree = e1TimeslotSet.size();
 		
 		return e1TimeslotSet;
-	}
-	
-	public int getNumbOfGenes() { //nuovo metodo che mi serve nel metodo per la scrittura del file di output
-		return this.numOfGenes;
 	}
 }

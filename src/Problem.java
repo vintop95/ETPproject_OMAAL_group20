@@ -208,39 +208,40 @@ public class Problem {
 		}
 	}
 	
-	public void CreateOutputFile(String instanceName) { //metodo che crea il file di output vuoto e verifica che sia possibile crearlo
+	//metodo che crea il file di output vuoto e verifica che sia possibile crearlo
+	public void CreateOutputFile(String fileName) { 
 		try{
-			File file = new File(instanceName + ".sol");
+			File file = new File(fileName);
 			if (file.createNewFile())
-	            System.out.println("File " + instanceName + " created");
+	            System.out.println("File " + fileName + " created");
 	        else
-	            System.out.println("File " + instanceName + " can't be created");
-		 } catch (IOException e) {
+	            System.out.println("File " + fileName + " can't be created, it may already exist");
+		 }catch (IOException e) {
 		        e.printStackTrace();
-		    }	
+		 }
+		
 	}
 	
-	public void generateOutput(String instanceName, double timeElapsed, Individual fittest ) { //metodo che scrive l'output sul file vuoto creato
-		int count=fittest.getNumbOfGenes(); //nuova funzione nella classe Individual
+	//metodo che scrive l'output sul file vuoto creato
+	public void generateOutput(String instanceName, double timeElapsed, Individual fittest ) { 
+		
+		String fileName = instanceName + "_OMAAL_group20.sol";
+		
+		CreateOutputFile(fileName);
 		try{
-			FileWriter fw = new FileWriter(instanceName + ".sol");
+			FileWriter fw = new FileWriter(fileName);
 			BufferedWriter bw = new BufferedWriter(fw);
-			bw.write("Best solution found in " + timeElapsed + " seconds:\r\n ");
-			for(int i=0;i<count;i++) {
-			bw.write((i+1) + "  " + (fittest.getGene(i)+1) + "\r\n");
+			for(int i=0; i<N_EXAMS; i++) {
+				bw.write((i+1) + "  " + (fittest.getGene(i)+1));
+				if(i < N_EXAMS-1)
+					bw.write("\r\n");
 			}
-			if(fittest.isLegal())
-				bw.write("LEGAL (n of confl: " + FitnessFunct.nOfConflicts(fittest) + ")\r\n");
-			else
-				bw.write("ILLEGAL (n of confl: " + FitnessFunct.nOfConflicts(fittest) + ")\r\n");
-			bw.write("Penalty: " + fittest.getCost());
 			bw.flush();
 			bw.close();
 	     
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
-		
 		
 	}
 	
