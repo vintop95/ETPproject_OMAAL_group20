@@ -202,4 +202,8 @@ class Individual {
 		
 		return e1TimeslotSet;
 	}
+	
+	public int getNumbOfGenes() { //nuovo metodo che mi serve nel metodo per la scrittura del file di output
+		return this.numOfGenes;
+	}
 }
