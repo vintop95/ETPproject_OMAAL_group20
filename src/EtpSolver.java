@@ -50,7 +50,6 @@ public class EtpSolver {
 		while(timeElapsed < timeLimit /* && 
 			GeneticAlgorithm.getNonImprovingIterationsCount() < maxNonImprovingIterations*/){
 			
-			
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
 			fittest = myPop.getFittest();
 			

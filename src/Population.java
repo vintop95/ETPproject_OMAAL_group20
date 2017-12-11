@@ -10,9 +10,11 @@ class Population {
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		if(initialize){			
+			System.out.println("Generating first population: ");
 			for(int i=0; i<size(); i++) {
 				saveIndividual(i, new Individual(p));
 				getIndividual(i).generateFeasibleIndividual();
+				System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
 			}
 		}
 	}

@@ -43,8 +43,25 @@ class FitnessFunct {
 					cost += w[d]*p.getConflicts(exam1, exam2);
 			}
 		}
-		
 		return cost/p.getStudents();
+	}
+	
+	//it calculates the costWeight of the exam1
+	protected static double getCostWeight(Individual timetable, int exam1) {
+		double costWeight= 0;
+		int numExams= p.getExams();
+		int period1= timetable.getGene(exam1);
+		
+		for(int exam2=0; exam2<numExams; exam2++) {
+			if(exam1!=exam2) {
+				int period2=timetable.getGene(exam2);
+				int d = Math.abs(period1 - period2);
+				if(d <= 5)
+					costWeight += w[d]*p.getConflicts(exam1, exam2);
+			}
+		}
+		return (costWeight/p.getStudents()/2);
+		// divide by two because we consider twice a conflict
 	}
 	
 	//IT CHECKS IF THE GIVEN SOLUTION IS LEGAL
