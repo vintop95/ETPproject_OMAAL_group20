@@ -65,6 +65,7 @@ class GeneticAlgorithm {
 		nOfCycles++;
 		//System.out.println(nOfCycles);
 		
+		//sort individual by fitness for choosing elite
 		for(int i=0; i<pop.size(); i++){
 			individualsSortedByFitness.add(new Couple(pop.getIndividual(i).getFitness(), pop.getIndividual(i)));
 		}
@@ -79,11 +80,24 @@ class GeneticAlgorithm {
 			newPopulation.saveIndividual(i, eliteInd);
 		}
 		
+		
 		for(int i=elitePopSize; i< pop.size(); i++){
 			Individual ind1 = randomIndividual(pop);
+			
+			//crossover between 2 individuals?
 			//Individual ind2 = randomIndividual(pop);
 			//Individual newInd = crossover(ind1, ind2);
-			Individual newInd = deschedulingOperator(ind1, rand.nextDouble() * maxDeschedulationRate);
+			
+			Individual newInd;
+			System.out.println("non impr cont:" + nonImprovingIterationsCount);
+			if(nonImprovingIterationsCount%3 == 1){
+				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate;
+				newInd = deschedulingOperator(ind1, deschedulationRate);
+			}
+			else{
+				newInd = localSearchOperator(ind1);
+			}
+			
 			newPopulation.saveIndividual(i, newInd);
 		}
 		
@@ -159,6 +173,11 @@ class GeneticAlgorithm {
 		return newInd;
 	}
 	
+	private static Individual localSearchOperator(Individual indiv){
+		Individual newInd = new Individual(indiv);
+		newInd.localSearch();
+		return newInd;
+	}
 	
 	// Mutate an individual
 	/*private static void mutate(Individual indiv) {
@@ -197,7 +216,5 @@ class GeneticAlgorithm {
 		int indexRandomInd = rand.nextInt(pop.size());
 		return pop.getIndividual(indexRandomInd);
 	}
-	
-	
 	
 }

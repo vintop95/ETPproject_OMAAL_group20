@@ -32,42 +32,41 @@ class Individual {
 	
 	//this is the set of exams TO SCHEDULATE
 	PriorityQueue<SortedExam> examToSchedule;
-	PriorityQueue<SortedExam> examToScheduleCostWeight;
 	
 	
 	
 	//2) METHODS
-	//CONSTRUCTOR
+	//CONSTRUCTORS
 	public Individual(Individual ind){
-		this.numOfGenes = ind.numOfGenes;
-		this.numOfAlleles = ind.numOfAlleles;
 		this.p = ind.p;
-		this.genes = new Vector<Integer>(ind.genes);
+		this.numOfGenes = p.getExams();
+		this.numOfAlleles = p.getTimeslots();	
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
-		examToScheduleCostWeight = new PriorityQueue<SortedExam>(p.getSortedExamsCostWeight());
+		
+		this.genes = new Vector<Integer>(ind.genes);
 	}
+	
 	//change the timeslot of exam in newTimeSlot
 	public Individual(Individual ind,int exam, int newTimeSlot){
-		this.numOfGenes = ind.numOfGenes;
-		this.numOfAlleles = ind.numOfAlleles;
-		this.p = ind.p;
-		this.genes = new Vector<Integer>(ind.genes);
+		//call the other constructor
+		this(ind);
 		genes.set(exam, newTimeSlot);
-		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 	}
+	
 	public Individual(Problem p) {
 		this.p = p;
 		numOfGenes = p.getExams();
 		numOfAlleles = p.getTimeslots();
+		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
+		
 		//set all timeslots to an undefined value
 		genes = new Vector<Integer>();
-		
 		for(int i=0; i<numOfGenes; i++){
 			genes.add(-1);
 		}
-		
-		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 	}
+	
+	//END CONSTRUCTORS
 	
 	//TO GENERATE THE SOLUTION RANDOMLY (only in the form a)
 	public void generateIndividual() {
@@ -118,7 +117,7 @@ class Individual {
 	protected double getCost() {
 		return FitnessFunct.getCost(this);
 	}
-	protected int getCostWeight(int exam1) {
+	protected double getCostWeight(int exam1) {
 		return FitnessFunct.getCostWeight(this, exam1);
 	}
 	protected Problem getProblem() {
@@ -142,17 +141,15 @@ class Individual {
 			int exId = it.next();
 			setGene( exId, -1);
 			//set exams to schedule for the feasible generator
-			SortedExam se = new SortedExam(p.getSortedExam(exId));
+			SortedExam se = p.getSortedExam(exId);
 			examToSchedule.add(se);		
 		}
 	}
 	
-	//TODO: rimuovi questa intestazione
-	//+++inseriti da vincenzo 6-12 after revelations+++
-	
-	
 	
 	//TODO: limit number of iteration OF generateFeasibleIndividual
+	//TODO: DA COMPLETARE, ANCORA NON BUONA PER LA INSTANCE2
+	
 	public void generateFeasibleIndividual(){
 		
 		//examToSchedule contains the exams to schedule
@@ -194,34 +191,125 @@ class Individual {
 			}
 		} //end while
 		
-		//System.out.println(this.toString());
 	}
 	
-	public Individual localSearch(Individual startSol){
-		//if don't find a better timeslot stay in the same
-		Individual newInd=this;
+	//versione non ancora funzionante
+	/*public void generateFeasibleIndividual(){
+		
+		//examToSchedule contains the exams to schedule
+		
 		HashSet<Integer> T = p.getTimeslotSet();
 		
-		while(! examToScheduleCostWeight.isEmpty() ){ //for each element or the queue
-			SortedExam e1 = examToScheduleCostWeight.poll();
-			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);
-			int exam1=e1.getId();
-			int bestTimeSlot=-1;
-			int bestVariation=0;
-			if( ! e1TimeslotSet.isEmpty()){
-				for(Integer timeSlot: e1TimeslotSet){
-					int var=this.costVariation(exam1, timeSlot);
-					if(var<bestVariation){
-						bestVariation=var;
-						bestTimeSlot=timeSlot;
+		while(! examToSchedule.isEmpty() ){			
+			//pick the most 'greedy' exam
+			SortedExam e1 = examToSchedule.poll();//not a copy, the same e1
+			
+			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);	
+			
+			int numOfTimeslotToRestore = (int) 0.2 * p.getTimeslots();
+			
+			while( e1TimeslotSet.isEmpty() ){
+				for(int i=0; i<numOfTimeslotToRestore;i++){
+					int period;
+					do{
+						period = rand.nextInt(p.getTimeslots());
+					}while(e1TimeslotSet.contains(period));
+					
+					e1TimeslotSet.add(period);
+				}
+				
+				//deschedule exams e2 that are in a random timeslot picked
+				//and reinsert e1 and all e2 there in E1
+				
+				//examToSchedule.add(e1);
+				
+				//we pick a random timeslot and we try to make it 
+				//available for the exam e1
+				
+				for(int e2 = 0; e2 < p.getExams(); e2++){
+					//if e2 is in conflict with e1 and is placed in one of the restored timeslots
+					//we have to deschedulate it
+					if(p.areExamsInConflicts(e1.id, e2) && e1TimeslotSet.contains(getGene(e2)) ){
+						setGene(e2, -1);
+						//get sorted exam with id=e2
+						SortedExam se = p.getSortedExam(e2);
+						//and reinsert it to the list of exams to schedule
+						if(! examToSchedule.contains(se))
+							examToSchedule.add(se);
 					}
 				}
-				if(bestTimeSlot!=-1){
-					newInd=new Individual(this, exam1, bestTimeSlot);
+				
+			}
+			
+			
+			
+			//assign e1 in a random timeslot
+			
+			Iterator<Integer> it = e1TimeslotSet.iterator();
+			for (int t = rand.nextInt(e1TimeslotSet.size());
+					t > 0; t--){
+				it.next();
+			}
+			
+			int pickedTimeslot = it.next();
+			
+			setGene(e1.id, pickedTimeslot);
+			
+			//end assign e1 in a random timeslot
+
+			
+		} //end while
+		
+		
+		
+	}*/
+	
+	private PriorityQueue<SortedExam> calculateExamToScheduleCostWeight(){
+		PriorityQueue<SortedExam> examToScheduleCostWeight = new PriorityQueue<SortedExam>(11, new CostWeightComparator());
+		
+		for(int e = 0; e < numOfGenes; e++){
+			p.getSortedExam(e).costWeight = getCostWeight(e);
+			examToScheduleCostWeight.add(p.getSortedExam(e));
+		}
+		return examToScheduleCostWeight;
+	}
+	
+	//THIS METHOD MOVES THE SOLUTION INTO THE BEST OF THE NEIGHBORHOOD
+	public void localSearch(){
+		//if you don't find a better timeslot, stay in the same
+		
+		//we need to recalculate the cost weight of each exam
+		PriorityQueue<SortedExam> examToScheduleCostWeight = calculateExamToScheduleCostWeight();
+		
+		while(! examToScheduleCostWeight.isEmpty() ){ //for each element or the queue
+			
+			//pop an exam from the queue
+			SortedExam e1 = examToScheduleCostWeight.poll();
+			
+			//generate feasible timeslot for scheduling exam e1
+			HashSet<Integer> T = p.getTimeslotSet();
+			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);
+			
+			//if there are feasible timeslot to schedule e1
+			if(! e1TimeslotSet.isEmpty()){
+				//look for the best timeslot in terms of best cost variation
+				int bestTimeslot = -1;
+				double bestVariation = 0;
+				
+				for(Integer timeslot: e1TimeslotSet){
+					double var = this.costVariation(e1.getId(), timeslot);
+					if(var<bestVariation){
+						bestVariation = var;
+						bestTimeslot = timeslot;
+					}
+				}
+				
+				if(bestTimeslot != -1){
+					setGene(e1.getId(), bestTimeslot);
 				}
 			}
 		} //end while
-		return newInd;
+		System.out.println("new cost after local search: " + getCost());
 	}
 	
 	//it returns the set of timeslots complementary to:
@@ -247,12 +335,14 @@ class Individual {
 	}
 	
 	//Calculates the advantage of moving an examToMove in the newTimeSlot
-	int costVariation(int examToMove, int newTimeSlot) {
-		int costVar=0;
-		Individual newInd=new Individual(this, examToMove, newTimeSlot);
-		double costWeightOld=this.getCostWeight(examToMove);
-		double costWeightNew=newInd.getCostWeight(examToMove);
-		costVar=(int)(costWeightNew - costWeightOld);
+	double costVariation(int examToMove, int newTimeslot) {
+		double costVar=0;
+		//we create a new temporary solution
+		//in which the examToMove is moved to the newTimeslot
+		Individual newInd = new Individual(this, examToMove, newTimeslot);
+		double costWeightOld = this.getCostWeight(examToMove);
+		double costWeightNew = newInd.getCostWeight(examToMove);
+		costVar = (costWeightNew - costWeightOld);
 		return costVar;
 	}
 }

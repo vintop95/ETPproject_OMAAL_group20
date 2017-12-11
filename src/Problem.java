@@ -6,26 +6,20 @@ import java.io.LineNumberReader;
 import java.util.*;
 
 //TODO: GIVE this class the dignity to live in a new file?
-class SortedExam implements Comparable<SortedExam>{
+class SortedExam{
+	
 	final public int id;       //n of exams
 	final public int nOfConfl; //key
-	final public int costWeight; //how much this exam influence cost of OF 
+	public double costWeight; //how much this exam influence cost of OF 
 									//part of the penalty due to this exam
 	public int nSlotsFree; //calculate when you check the exams in conflict
 						   //in an iteration of the algorithm to generate a sol
-	//if confl=true is an SortedExam using nOfConfl
-	public SortedExam(int id, int nOfConfl, int nSlotsFree, boolean confl){
+
+	public SortedExam(int id, int nOfConfl, int nSlotsFree){
 		this.id = id;		
 		this.nSlotsFree = nSlotsFree;
-		if(confl){
-			this.nOfConfl = nOfConfl;
-			this.costWeight = -1;
-		}
-		else{
-			this.costWeight = nOfConfl;
-			this.nOfConfl = -1;
-		}
-		//this.costWeight=costWeight;
+		this.nOfConfl = nOfConfl;
+		this.costWeight = -1;
 	}
 	
 	public SortedExam(SortedExam old){
@@ -35,24 +29,42 @@ class SortedExam implements Comparable<SortedExam>{
 		this.costWeight=old.costWeight;
 	}
 	
-	//TODO: we shall sort by nSlotsFree???
+	public int getId(){
+		return this.id;
+	}
+	
 	@Override
-	public int compareTo(SortedExam e2){
-		//sorted reversed in order to get first the exams with most conflicts
-		//in the priority queue
-		if(this.nOfConfl < e2.nOfConfl)
+	public boolean equals(Object other){
+		SortedExam se = (SortedExam) other;
+		return (se.id == this.id);
+	}
+}
+
+class ConflictComparator implements Comparator<SortedExam> {
+	
+	public int compare(SortedExam c1, SortedExam c2){
+		if(c1.nOfConfl < c2.nOfConfl)
 			return 1;
-		else if(this.nOfConfl == e2.nOfConfl)
+		else if(c1.nOfConfl == c2.nOfConfl)
 			return 0;
 		else
 			return -1;
 	}
 	
-	public int getId(){
-		return this.id;
-	}
 }
 
+class CostWeightComparator implements Comparator<SortedExam> {
+	
+	public int compare(SortedExam c1, SortedExam c2){
+		if(c1.costWeight < c2.costWeight)
+			return 1;
+		else if(c1.costWeight == c2.costWeight)
+			return 0;
+		else
+			return -1;
+	}
+	
+}
 
 //THIS CLASS HAS THE DUTY OF LOADING
 //THE PROBLEMS FROM THE INPUT
@@ -62,11 +74,11 @@ public class Problem {
 	private int N_TIMESLOTS;
 	//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
 	private int[][] conflictMatrix;
-	//needed 2 forms for algorithmic reasons
+	//needed 2 forms for algorithmic reasons:
+	//in priorityqueue and in array.
 	private PriorityQueue<SortedExam> sortedExams;
-	private PriorityQueue<SortedExam> sortedExamsCostWeight;
-	private SortedExam[] arraySortedExams;
-	private SortedExam[] arraySortedExamsCostWeight;
+	//exams ordered by id in the array, but they are object SortedExam
+	private SortedExam[] arraySortedExams; 
 	private HashSet<Integer> timeslotSet;
 	private List<Integer> examSet;
 	
@@ -105,16 +117,18 @@ public class Problem {
 		
 		try{
 			//counting rows of the file. it works, trust me!
-			LineNumberReader count = new LineNumberReader(new FileReader("./" + instanceName + ".exm"));
-			while (count.skip(Long.MAX_VALUE) > 0);
-			nExams = count.getLineNumber() + 1; // +1 because line index starts at 0  
-			count.close();
+			Scanner in = new Scanner(new File(instanceName + ".exm"));
+			
+			int stud;//useless
+			while( in.hasNext()){
+				String s = in.next();
+				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
+				nExams = Integer.parseInt(s);
+				stud = in.nextInt();
+			}
 		} catch(FileNotFoundException e) {
             System.out.println("File not found: " + instanceName + ".exm");
             System.exit(-1);
-        } catch(IOException e){
-        	System.out.println("IOException in file: " + instanceName + ".exm");
-        	System.exit(-1);
         }
 		
 		return nExams;
@@ -132,7 +146,7 @@ public class Problem {
 			//reading exams for each student
 				Scanner in = new Scanner(new File(instanceName + ".stu"));
 			
-				while (in.hasNextLine()){	
+				while (in.hasNextLine() && in.hasNext()){	
 					//READ SID WITHOUT INITIAL 's'
 					StringBuilder sb = new StringBuilder(in.next());
 					sb.deleteCharAt(0);
@@ -185,18 +199,14 @@ public class Problem {
 	public int getStudents() {return N_STUDENTS;}
 	public int getTimeslots() {return N_TIMESLOTS;}
 	public PriorityQueue<SortedExam> getSortedExams() {return sortedExams;}
-	public PriorityQueue<SortedExam> getSortedExamsCostWeight() {return sortedExamsCostWeight;}
 	public SortedExam getSortedExam(int i) {return (SortedExam) arraySortedExams[i];}
-	public SortedExam getSortedExamCostWeight(int i) {return (SortedExam) arraySortedExamsCostWeight[i];}
 	public HashSet<Integer> getTimeslotSet() {return timeslotSet;}
 	public List<Integer> getExamSet() {return examSet;}
 	
 	
-	//TODO: rimuovi questa intestazione
-	//+++inseriti da vincenzo 6-12 after revelations+++
-	
 	private void generateSortedExams(){
-		sortedExams = new PriorityQueue<SortedExam>();
+		sortedExams = new PriorityQueue<SortedExam>(11, new ConflictComparator());
+		
 		arraySortedExams = new SortedExam[N_EXAMS];
 		int nOfConfl;
 		for(int e1=0; e1<N_EXAMS; e1++){
@@ -206,33 +216,12 @@ public class Problem {
 					nOfConfl++;
 				}
 			}
-			SortedExam ex = new SortedExam(e1, nOfConfl, N_TIMESLOTS, true);
+			SortedExam ex = new SortedExam(e1, nOfConfl, N_TIMESLOTS);
 			sortedExams.add(ex);
+			
 			arraySortedExams[e1] = ex;
 		}
-		
 	}
-	
-	//TODO: (E) control if is useful
-	//creare a priorityqueue based on the costWeight
-	/*private void generateSortedExamsByCostWeight(){
-		sortedExamsCostWeight = new PriorityQueue<SortedExam>();
-		arraySortedExamsCostWeight = new SortedExam[N_EXAMS];
-		int costWeight;
-		for(int e1=0; e1<N_EXAMS; e1++){
-			costWeight=0;
-			for(int e2=0; e2<N_EXAMS; e2++){
-				if (areExamsInConflicts(e1, e2)){
-					//in the problem you don't know how much of penalty is caused by an exam
-					costWeight+=conflictMatrix[e1][e2];
-				}
-			}
-			SortedExam ex = new SortedExam(e1, costWeight, N_TIMESLOTS, false);
-			sortedExamsCostWeight.add(ex);
-			arraySortedExamsCostWeight[e1] = ex;
-		}
-		
-	}*/
 	
 	private void generateSets(){
 		timeslotSet = new HashSet<Integer>(N_TIMESLOTS);
