@@ -76,6 +76,9 @@ class FitnessFunct {
 					if(p.areExamsInConflicts(exam1, exam2))
 						return false; 
 				}
+				if(period1 == -1 || period2 == -1){
+					return false; 
+				}
 			}
 		}
 		return true;

@@ -252,6 +252,7 @@ public class Problem {
 		
 	}
 	
+	//TODO: BISOGNA EVITARE DI SOVRASCRIVERE IL FILE SE LA SOLUZIONE DEL FILE PRECEDENTE È MIGLIORE
 	//metodo che scrive l'output sul file vuoto creato
 	public void generateOutput(String instanceName, double timeElapsed, Individual fittest ) { 
 		
