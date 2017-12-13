@@ -63,7 +63,7 @@ public class EtpSolver {
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
 		System.out.println(myPop.getFittest());
-		p.generateOutput(instanceName,timeElapsed, myPop.getFittest());
+		p.checkOutputFile(instanceName, myPop.getFittest());
 	}
 	
 	private static double updateTimeElapsed(long startTime){
