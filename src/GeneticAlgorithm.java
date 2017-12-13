@@ -64,6 +64,8 @@ class GeneticAlgorithm {
 	public static Population evolvePopulation(Population pop) {
 		nOfCycles++;
 		//System.out.println(nOfCycles);
+		System.out.println("non impr cont:" + nonImprovingIterationsCount);
+		
 		
 		//sort individual by fitness for choosing elite
 		for(int i=0; i<pop.size(); i++){
@@ -89,17 +91,27 @@ class GeneticAlgorithm {
 			//Individual newInd = crossover(ind1, ind2);
 			
 			Individual newInd;
-			System.out.println("non impr cont:" + nonImprovingIterationsCount);
-			if(nonImprovingIterationsCount%3 == 1){
+			
+			if( rand.nextDouble() < 0.20){
 				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate;
 				newInd = deschedulingOperator(ind1, deschedulationRate);
+			}else{
+				newInd = localSearchOperator(ind1);
+			}
+			
+			
+			if(nonImprovingIterationsCount > 0){
+				
+				
 			}
 			else{
-				newInd = localSearchOperator(ind1);
+				
 			}
 			
 			newPopulation.saveIndividual(i, newInd);
 		}
+		
+		nonImprovingIterationsCount = 0;
 		
 		/*			
 		for (int i = 0; i < pop.size(); i++) {
@@ -117,6 +129,7 @@ class GeneticAlgorithm {
 //		}
 	
 		//to check if we are in a local minimum
+		
 		if(pop.getFittest().getCost() == newPopulation.getFittest().getCost()) {
 			nonImprovingIterationsCount++;
 		}
@@ -169,7 +182,17 @@ class GeneticAlgorithm {
 	private static Individual deschedulingOperator(Individual indiv, double deschedulationRate){
 		Individual newInd = new Individual(indiv);
 		newInd.deschedulateRandomExams(deschedulationRate);
-		newInd.generateFeasibleIndividual();
+
+		boolean feasibleSolFound = false;
+		int maxIterations = 10000;
+		for(int i=0; i <maxIterations && ! feasibleSolFound; i++){
+			feasibleSolFound = newInd.generateFeasibleIndividual();
+		}
+
+		
+		if(! feasibleSolFound)
+			newInd = indiv;
+		
 		return newInd;
 	}
 	

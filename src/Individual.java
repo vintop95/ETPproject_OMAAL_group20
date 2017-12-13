@@ -316,6 +316,7 @@ class Individual {
 				}
 			}
 		} //end while
+		
 		System.out.println("new cost after local search: " + getCost());
 	}
 	

@@ -48,8 +48,7 @@ public class EtpSolver {
 		double currentOptimalCost = fittest.getCost();
 		
 		double timeElapsed = updateTimeElapsed(startTime);
-		while(timeElapsed < timeLimit /* && 
-			GeneticAlgorithm.getNonImprovingIterationsCount() < maxNonImprovingIterations*/){
+		while(timeElapsed < timeLimit){
 			
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
 			fittest = myPop.getFittest();
