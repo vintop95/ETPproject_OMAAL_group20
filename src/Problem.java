@@ -238,27 +238,12 @@ public class Problem {
 		}
 	}
 	
-	//metodo che crea il file di output vuoto e verifica che sia possibile crearlo
-	public void CreateOutputFile(String fileName) { 
-		try{
-			File file = new File(fileName);
-			if (file.createNewFile())
-	            System.out.println("File " + fileName + " created");
-	        else
-	            System.out.println("File " + fileName + " can't be created, it may already exist");
-		 }catch (IOException e) {
-		        e.printStackTrace();
-		 }
-		
-	}
 	
-	//TODO: BISOGNA EVITARE DI SOVRASCRIVERE IL FILE SE LA SOLUZIONE DEL FILE PRECEDENTE È MIGLIORE
 	//metodo che scrive l'output sul file vuoto creato
-	public void generateOutput(String instanceName, double timeElapsed, Individual fittest ) { 
+	public void generateOutput(String instanceName, Individual fittest ) { 
 		
 		String fileName = instanceName + "_OMAAL_group20.sol";
 		
-		CreateOutputFile(fileName);
 		try{
 			FileWriter fw = new FileWriter(fileName);
 			BufferedWriter bw = new BufferedWriter(fw);
@@ -276,4 +261,44 @@ public class Problem {
 		
 	}
 	
+	public void checkOutputFile(String instanceName, Individual fittest) {
+		String fileName=instanceName + "_OMAAL_group20.sol";
+		File file=new File(fileName);
+		
+		try{
+			if(file.exists()) {
+				Individual oldfittest=new Individual(this);
+				
+				Scanner in = new Scanner(file);
+				
+				System.out.println("File " + fileName + " may already exist");
+				
+				 while(in.hasNextInt()) {
+				    int i=in.nextInt() - 1;
+				    int allele = in.nextInt() - 1;
+				    oldfittest.setGene(i, allele);
+				 }
+				in.close();
+	
+				if(oldfittest.getCost()>fittest.getCost()) {
+					//file.delete();
+					generateOutput(instanceName,fittest);
+					System.out.println("File " + fileName + " overwritten with a new best solution");
+					}
+				else {
+					System.out.println("File " + fileName + " already contains the best solution");
+					System.out.println("Best solution for "+ instanceName + ":");
+					System.out.println(oldfittest.toString());
+				}
+			
+			} else {
+				generateOutput(instanceName,fittest);
+				System.out.println("File " + fileName + " created");
+			}
+			
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+	}
 }// end of class

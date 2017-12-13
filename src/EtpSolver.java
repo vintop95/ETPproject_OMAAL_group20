@@ -32,7 +32,7 @@ public class EtpSolver {
 			System.exit(-1);
 		}
 		
-		final int popSize = 6;
+		final int popSize = 15;
 		//final int maxNonImprovingIterations = 1000;
 		final String instanceName = args[0];
 		timeLimit = Integer.parseInt(args[2]);
@@ -64,7 +64,7 @@ public class EtpSolver {
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
 		System.out.println(myPop.getFittest());
-		p.generateOutput(instanceName,timeElapsed, myPop.getFittest());
+		p.checkOutputFile(instanceName, myPop.getFittest());
 	}
 	
 	public static double updateTimeElapsed(long startTime){
