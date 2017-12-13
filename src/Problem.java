@@ -283,8 +283,11 @@ public class Problem {
 					generateOutput(instanceName,fittest);
 					System.out.println("File " + fileName + " overwritten with a new best solution");
 					}
-				else
+				else {
 					System.out.println("File " + fileName + " already contains the best solution");
+					System.out.println("Best solution for "+ instanceName + ":");
+					System.out.println(oldfittest.toString());
+				}
 			
 			} else {
 				generateOutput(instanceName,fittest);
