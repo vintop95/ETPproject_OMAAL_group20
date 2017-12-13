@@ -21,6 +21,7 @@ long seconds = (endTime - startTime) / 1000;
 */
 public class EtpSolver {
 	
+	static public double timeLimit;
 	//SHOULD BE OK
 	
 	public static void main(String[] args) {
@@ -34,7 +35,7 @@ public class EtpSolver {
 		final int popSize = 6;
 		//final int maxNonImprovingIterations = 1000;
 		final String instanceName = args[0];
-		final double timeLimit = Integer.parseInt(args[2]);
+		timeLimit = Integer.parseInt(args[2]);
 		//we start counting
 		long startTime= System.currentTimeMillis();
 		
@@ -66,7 +67,7 @@ public class EtpSolver {
 		p.generateOutput(instanceName,timeElapsed, myPop.getFittest());
 	}
 	
-	private static double updateTimeElapsed(long startTime){
+	public static double updateTimeElapsed(long startTime){
 		long currentTime = System.currentTimeMillis();
 		double elapsedTime = (currentTime - startTime)/1000;
 		return elapsedTime;

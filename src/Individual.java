@@ -37,6 +37,19 @@ class Individual {
 	
 	//2) METHODS
 	//CONSTRUCTORS
+	public Individual(Problem p) {
+		this.p = p;
+		numOfGenes = p.getExams();
+		numOfAlleles = p.getTimeslots();
+		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
+		
+		//set all timeslots to an undefined value
+		genes = new Vector<Integer>();
+		for(int i=0; i<numOfGenes; i++){
+			genes.add(-1);
+		}
+	}
+	
 	public Individual(Individual ind){
 		this.p = ind.p;
 		this.numOfGenes = p.getExams();
@@ -53,18 +66,7 @@ class Individual {
 		genes.set(exam, newTimeSlot);
 	}
 	
-	public Individual(Problem p) {
-		this.p = p;
-		numOfGenes = p.getExams();
-		numOfAlleles = p.getTimeslots();
-		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
-		
-		//set all timeslots to an undefined value
-		genes = new Vector<Integer>();
-		for(int i=0; i<numOfGenes; i++){
-			genes.add(-1);
-		}
-	}
+	
 	
 	//END CONSTRUCTORS
 	
@@ -147,50 +149,125 @@ class Individual {
 	}
 	
 	
+	private void assignExamInRandomTimeslot(int exam, HashSet<Integer> availableTimeslot){
+		
+		Iterator<Integer> it = availableTimeslot.iterator();
+		for (int t = rand.nextInt(availableTimeslot.size());
+				t > 0; t--){
+			it.next();
+		}
+		
+		int pickedTimeslot = it.next();
+		
+		setGene(exam, pickedTimeslot);
+	}
+	
 	//TODO: limit number of iteration OF generateFeasibleIndividual
 	//TODO: DA COMPLETARE, ANCORA NON BUONA PER LA INSTANCE2
 	
-	public void generateFeasibleIndividual(){
+	public boolean generateFeasibleIndividual(){
 		
-		//examToSchedule contains the exams to schedule
-		
-		HashSet<Integer> T = p.getTimeslotSet();
+
+		//needed as a second auxiliary queue for collecting exams
+		PriorityQueue<SortedExam> deschedulatedExamToSchedule =
+		new PriorityQueue<SortedExam>(11, new CostWeightComparator());
 		
 		while(! examToSchedule.isEmpty() ){			
 			//pick the most 'greedy' exam
-			SortedExam e1 = examToSchedule.poll();//not a copy, the same e1
+			SortedExam e1 = examToSchedule.poll();
 			
-			HashSet<Integer> e1TimeslotSet = generateE1TimeslotSet(e1, T);	
+			HashSet<Integer> availableTimeslot = generateE1TimeslotSet(e1, p.getTimeslotSet());	
 			
-			if( ! e1TimeslotSet.isEmpty()){
+			//if there is at least one timeslot free to assign e1
+			if( ! availableTimeslot.isEmpty() ){
 				//assign e1 in a random timeslot
-				
-				Iterator<Integer> it = e1TimeslotSet.iterator();
-				for (int t = rand.nextInt(e1TimeslotSet.size());
-						t > 0; t--){
-					it.next();
-				}
-				
-				int pickedTimeslot = it.next();
-				
-				setGene(e1.id, pickedTimeslot);
-				
+				assignExamInRandomTimeslot(e1.id, availableTimeslot);
 			} else {
-				//deschedule exams e2 and reinsert e1 and all e2 in E1
-				examToSchedule.add(e1);
-				for(int e2 = 0; e2 < p.getExams(); e2++){
-					if(p.areExamsInConflicts(e1.id, e2)){
+				//add e1 in the new queue for schedule it
+				deschedulatedExamToSchedule.add(e1);
+			}
+		}
+		
+		
+		int nOfIteration = 0;
+		int nOfIterationMax = p.getExams()*2;
+		while(! deschedulatedExamToSchedule.isEmpty() && nOfIteration < nOfIterationMax){
+			nOfIteration++;
+			//pick the most 'greedy' exam
+			SortedExam e1 = deschedulatedExamToSchedule.poll();
+			
+			//this vector is used to store for each timeslot
+			//how many exams in conflict with e1 are there
+			int[] occurrency = new int[p.getTimeslots()];
+			int selectedTimeslot = 0;
+			
+			for(int e2 = 0; e2 < p.getExams(); e2++){
+				boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
+				boolean e2IsAlreadyScheduled = (getGene(e2) != -1);
+				
+				if(e2IsInConflictWithE1 && e2IsAlreadyScheduled){
+					//counting the exams in conflict in that timeslot
+					occurrency[ getGene(e2) ] ++;					
+				}
+			}
+			
+			for(int t=0; t<p.getTimeslots(); t++){
+				//choose the timeslot with the minimum number
+				//of exams in conflict for e1
+				
+				//TODO: si potrebbe pensare di usare minore o uguale per
+				//diversificare in caso di pareggio?
+				if(occurrency[t]< occurrency[selectedTimeslot])
+					selectedTimeslot = t;
+			}
+			
+			Vector<Integer> optimalTimeslots = new Vector<Integer>();
+			for(int t=0; t<p.getTimeslots(); t++){
+				if(occurrency[t] == occurrency[selectedTimeslot]){
+					optimalTimeslots.add(t);
+				}
+			}
+			
+			//we get a random optimal timeslot
+			selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
+			//descheduliamo gli esami in conflitto con e1 che sono schedulati in
+			//selectedTimeslot, ammesso che ce ne siano
+			if(occurrency[selectedTimeslot] > 0){
+				for(int e2=0; e2<p.getExams(); e2++){
+					boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
+					boolean e2IsInTheSelectedTimeslot = (getGene(e2) == selectedTimeslot);
+					
+					if (e2IsInConflictWithE1 && e2IsInTheSelectedTimeslot){
 						setGene(e2, -1);
-						//get sorted exam with id=e2
-						SortedExam se = new SortedExam(p.getSortedExam(e2));
-						//and reinsert it to the list of exams to schedule
-						examToSchedule.add(se);
+						//inseriamo gli esami deschedulati nella stessa lista 
+						deschedulatedExamToSchedule.add(p.getSortedExam(e2));
 					}
 				}
-				
 			}
-		} //end while
+			
+			//exam1 is finally positioned
+			setGene(e1.id, selectedTimeslot);
+			
+			
+			//nota che nella lista deschedulatedExamToSchedule vanno a finire:
+			// - Gli esami che non siamo riusciti a posizionare perché
+			// non vi era nessun timeslot disponibile
+			// - Gli esami che sono stati deschedulati poiché in
+			// conflitto con quelli definiti sopra
+			//Nel caso della seconda categoria potrebbe anche verificarsi
+			//che occurrency[selectedTimeslot] valga 0 e che quindi,
+			//per poterli posizionare, non si debba deschedulare nessuno
+		}
 		
+		return isLegal();
+	}
+	
+	public void reinitialize(){
+		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
+		genes = new Vector<Integer>();
+		for(int i=0; i<numOfGenes; i++){
+			genes.add(-1);
+		}
 	}
 	
 	//versione non ancora funzionante
