@@ -16,12 +16,14 @@ class SortedExam{
 									//part of the penalty due to this exam
 	public int nSlotsFree; //calculate when you check the exams in conflict
 						   //in an iteration of the algorithm to generate a sol
-
-	public SortedExam(int id, int nOfConfl, int nSlotsFree){
-		this.id = id;		
-		this.nSlotsFree = nSlotsFree;
+	
+	public Vector<Integer> conflictingExams;
+	
+	public SortedExam(int id, int nOfConfl, Vector<Integer> conflictingExams){
+		this.id = id;
 		this.nOfConfl = nOfConfl;
 		this.costWeight = -1;
+		this.conflictingExams = conflictingExams;
 	}
 	
 	public SortedExam(SortedExam old){
@@ -215,17 +217,21 @@ public class Problem {
 		sortedExams = new PriorityQueue<SortedExam>(11, new ConflictComparator());
 		
 		arraySortedExams = new SortedExam[N_EXAMS];
+		
 		int nOfConfl;
 		for(int e1=0; e1<N_EXAMS; e1++){
 			nOfConfl=0;
+			Vector<Integer> conflictingExams = new Vector<Integer>();
 			for(int e2=0; e2<N_EXAMS; e2++){
 				if (areExamsInConflicts(e1, e2)){
+					conflictingExams.add(e2);
 					nOfConfl++;
 				}
 			}
-			SortedExam ex = new SortedExam(e1, nOfConfl, N_TIMESLOTS);
+			SortedExam ex = new SortedExam(e1, nOfConfl, conflictingExams);
 			sortedExams.add(ex);
 			
+			//we add it also in an array
 			arraySortedExams[e1] = ex;
 		}
 	}

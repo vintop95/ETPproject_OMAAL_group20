@@ -1,7 +1,7 @@
 import java.util.*;
 
 class Couple implements Comparable<Couple>{
-	private double key; //fitness
+	private double key; //cost
 	private Individual val; //individual
 	public Couple(double k, Individual v){
 		key = k;
@@ -21,9 +21,9 @@ class Couple implements Comparable<Couple>{
 		//it's inverted for having in the head
 		//of the PriorityQueue the biggest key
 		if (getKey() < c2.getKey())
-			return 1;
-		else if (getKey() > c2.getKey())
 			return -1;
+		else if (getKey() > c2.getKey())
+			return 1;
 		else
 			return 0;
 	}
@@ -36,7 +36,7 @@ class GeneticAlgorithm {
 	private static final Random rand = new Random();
 	private static int nonImprovingIterationsCount = 0;
 	
-	private static PriorityQueue<Couple> individualsSortedByFitness = new PriorityQueue<Couple>();
+	private static PriorityQueue<Couple> individualsSortedByCost = new PriorityQueue<Couple>();
 	
 	
 	public static void setProblem(Problem p) {
@@ -53,7 +53,7 @@ class GeneticAlgorithm {
 		
 		//sort individual by fitness for choosing elite
 		for(int i=0; i<pop.size(); i++){
-			individualsSortedByFitness.add(new Couple(pop.getIndividual(i).getFitness(), pop.getIndividual(i)));
+			individualsSortedByCost.add(new Couple(pop.getIndividual(i).getCost(), pop.getIndividual(i)));
 		}
 		
 		//create a new uninitialized population
@@ -62,24 +62,28 @@ class GeneticAlgorithm {
 		//calculate how many elite to save
 		int elitePopSize = (int) (pop.size() * elitismRate);
 		
-		//if there is more than one pop, you have to save at least one elite
-		//if they are 1, you cannot take always the same elite in the new pop
+		//if there is more than one individual, you have to save at least one elite individual.
+		//If there is only 1 individual in the pop, you cannot take it into the new population
+		//which will contains, in fact, only one individual
 		if(pop.size() > 1)
 			elitePopSize = Math.max(elitePopSize, 1);
 		
 		//saving elite
 		for(int i=0; i< elitePopSize; i++){
-			Individual eliteInd = individualsSortedByFitness.poll().getVal();
+			Individual eliteInd = individualsSortedByCost.poll().getVal();
 			newPopulation.saveIndividual(i, eliteInd);
 		}
 		
-		//generating new individuals from the existing
+		//generating new individuals from the existing ones
 		for(int i=elitePopSize; i< pop.size(); i++){
 			Individual ind1 = randomIndividual(pop);
 			
 			Individual newInd;
 			
 			//0.25 is good for instance01
+			//probability to mutate the solution starts from 25%
+			//and eventually increases until 50% if population
+			//hasn't been improving for more than 'maxNonImprovingIterations' iterations
 			int maxNonImprovingIterations = 100;
 			double prob = 0.25 + 0.25 * 
 					Math.min(nonImprovingIterationsCount, maxNonImprovingIterations) / maxNonImprovingIterations;

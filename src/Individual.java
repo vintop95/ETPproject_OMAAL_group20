@@ -188,10 +188,15 @@ class Individual {
 		
 		
 		int nOfIteration = 0;
+		//the maximum number of iterations we are willing to do
+		//in order to not remain stuck in this research
 		int nOfIterationMax = p.getExams()*2;
+
+		//we iterate this loop until there are no more exams to schedule
+		//or we exceeded the given number of maximum iterations
 		while(! deschedulatedExamToSchedule.isEmpty() && nOfIteration < nOfIterationMax){
 			nOfIteration++;
-			//pick the most 'greedy' exam
+			//pick the most conflicting exam
 			SortedExam e1 = deschedulatedExamToSchedule.poll();
 			
 			//this vector is used to store for each timeslot
@@ -202,7 +207,7 @@ class Individual {
 				boolean e2IsAlreadyScheduled = (getGene(e2) != -1);
 				
 				if(e2IsInConflictWithE1 && e2IsAlreadyScheduled){
-					//counting the exams in conflict in that timeslot
+					//update the number of exams in conflict in that timeslot
 					occurrency[ getGene(e2) ] ++;					
 				}
 			}
@@ -230,7 +235,11 @@ class Individual {
 			//we deschedulate the exams in conflict with e1 that are scheduled
 			//in selectedTimeslot, if there are any
 			if(occurrency[selectedTimeslot] > 0){
-				for(int e2=0; e2<p.getExams(); e2++){
+				for(int i = 0; i < e1.conflictingExams.size(); i++){
+					
+					//id of conflicting exams
+					int e2 = e1.conflictingExams.get(i);
+					
 					boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
 					boolean e2IsInTheSelectedTimeslot = (getGene(e2) == selectedTimeslot);
 					
@@ -328,8 +337,14 @@ class Individual {
 		//I clone the timeslot set complete, in order to remove bad timeslots from there
 		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
 		
-		for(int e2 = 0; e2 < p.getExams(); e2++){
-			if(p.areExamsInConflicts(e1.id, e2) && getGene(e2) >= 0){
+		//we are iterating only through the exams in conflicts with e1
+		for(int i = 0; i < e1.conflictingExams.size(); i++){
+			
+			//id of conflicting exams
+			int e2 = e1.conflictingExams.get(i);
+			
+			boolean e2IsScheduled = getGene(e2) >= 0;
+			if(e2IsScheduled){
 				//we should remove the timeslot because it's not
 				//available anymore for e1
 				e1TimeslotSet.remove(getGene(e2));
