@@ -44,22 +44,20 @@ public class EtpSolver {
 		Problem p = new Problem(instanceName);
 		GeneticAlgorithm.setProblem(p);
 		Population myPop = new Population(popSize, p, true);
-		Individual bestInd = p.bestInd;
 		
 		double timeElapsed = updateTimeElapsed(startTime);
 		while(timeElapsed < timeLimit){
 			
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
-			bestInd = p.bestInd;
 			
-			System.out.println("best solution now: " + bestInd.getCost());
+			System.out.println("best solution now: " + p.getBestInd().getCost());
 
 			timeElapsed = updateTimeElapsed(startTime);
 			
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
-		System.out.println(p.bestInd);
-		p.checkOutputFile(p.bestInd);
+		System.out.println(p.getBestInd());
+		p.checkOutputFile(p.getBestInd());
 	}
 	
 	public static double updateTimeElapsed(long startTime){

@@ -70,16 +70,6 @@ class Individual {
 	
 	//END CONSTRUCTORS
 	
-	//TO GENERATE THE SOLUTION RANDOMLY (only in the form a)
-	public void generateIndividual() {
-		for(int e=0; e<size(); e++) {
-			//we assign the random timeslot chosen for the exam e of the solution
-			setGene(e, rand.nextInt(numOfAlleles));
-		}
-		System.out.println("Num of confl: " + FitnessFunct.nOfConflicts(this));
-		this.toString();
-	}
-	
 	
 	//TO REPRESENT A SOLUTION IN COMMAND LINE
 	@Override

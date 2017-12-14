@@ -78,7 +78,18 @@ public class Problem {
 	private HashSet<Integer> timeslotSet;
 	private List<Integer> examSet;
 	
-	public Individual bestInd; //may be useful in case in which there are just one ind for population
+	private Individual bestInd; //may be useful in case in which there are just one ind for population
+	
+	public Individual getBestInd(){
+		return bestInd;
+	}
+	
+	public void updateBestInd( Individual newInd ){
+		if( bestInd == null || ( bestInd != null && newInd.getCost() < bestInd.getCost() )){
+			bestInd = newInd;
+		}
+	}
+	
 	
 	public Problem(String instanceName) {
 		if(instanceName != null) {

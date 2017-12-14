@@ -2,6 +2,7 @@ class Population {
 	//A POPULATION OF populationSize IS COMPOSED BY individuals (POSSIBLE SOLUTIONS)
 	private int populationSize;
 	private Individual[] individuals;
+	private Individual fittest;
 	
 	//CONSTRUCTOR
 	//initialize: if true, population is filled with random solutions
@@ -13,7 +14,6 @@ class Population {
 		
 		if(! initialize)	
 			return;
-		
 		
 		long startTime= System.currentTimeMillis();
 		
@@ -74,25 +74,25 @@ class Population {
 		populationSize = i;
 		
 		//update the best individual found until now
-		p.bestInd = getFittest();
+		p.updateBestInd( getFittest() );
 	}
 	
 	//find the solution with the maximum fit
 	public Individual getFittest() {
-		Individual fittest = individuals[0];
-		// Loop through individuals to find fittest
-		for (int i = 1; i < size(); i++) {
-			if (getIndividual(i).getCost() < fittest.getCost() ) {
-				fittest = getIndividual(i);
-			}
-		}
 		return fittest;
 	}
 		
 	
 	//TO ACCESS TO AN INDIVIDUAL
 	public void saveIndividual(int index, Individual indiv) {
+		double newCost = indiv.getCost();
+		
+		if(fittest == null || (fittest != null && newCost < fittest.getCost()) ){
+			fittest = indiv;
+		}
+		
 		individuals[index] = indiv;
+		
 	}
 	public Individual getIndividual(int index) {
 		return individuals[index];

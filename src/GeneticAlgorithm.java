@@ -109,16 +109,13 @@ class GeneticAlgorithm {
 			nonImprovingIterationsCount = 0;
 		}
 		
-		updateBestInd(newPopulation.getFittest());
+		
+		problem.updateBestInd( newPopulation.getFittest() );
+		
+		
 		return newPopulation;
 	}
 	
-	
-	static void updateBestInd(Individual ind){
-		if( ind.getCost() < problem.bestInd.getCost() ){
-			problem.bestInd = ind;
-		}
-	}
 	
 	
 	
