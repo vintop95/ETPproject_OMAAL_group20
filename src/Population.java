@@ -10,6 +10,7 @@ class Population {
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		
+		
 		if(! initialize)	
 			return;
 		
@@ -21,32 +22,55 @@ class Population {
 		System.out.println("Generating first population: ");
 		double timeElapsed = EtpSolver.updateTimeElapsed(startTime);
 		
-		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit / 2);
+		
+		double timeLimitRate = 0.33;
+		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
+
+		int i=0;
+		
+		Individual firstInd = p.readOldFile();
+		
+		if (firstInd != null && firstInd.isLegal() ){
+			saveIndividual(i, firstInd);
+			System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+			i++;
+		}
 		
 		
-		int i;
-		for( i=0; i<size() && timeLimitCondition; i++) {
+		int minSolutionToGenerate = 1;
+		
+		for(; i<size() && (i< minSolutionToGenerate || timeLimitCondition ) ; i++) {
 			Individual newInd = new Individual(p);
 			
+			
 			boolean feasibleSolFound = false;
+			
 			do{
 				newInd.reinitialize();
 				feasibleSolFound = newInd.generateFeasibleIndividual();
 				
 				timeElapsed = EtpSolver.updateTimeElapsed(startTime);
-				timeLimitCondition = timeElapsed < (EtpSolver.timeLimit / 2);
-			}while(! feasibleSolFound && (i==0 || timeLimitCondition ));
+				timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
+			}while(! feasibleSolFound && (i< minSolutionToGenerate || timeLimitCondition ));
 			//do that while a feasible solution is not found, but also
-			//if this is not the first solution you should stop after a timeLimit
+			//if this is not the minSolutionToGenerate-th solution you should stop after a timeLimit
 			
-			saveIndividual(i, newInd);
-			System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+			
+			if(feasibleSolFound){
+				saveIndividual(i, newInd);
+				System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+			}else{
+				i--;
+			}
+			
 			
 			timeElapsed = EtpSolver.updateTimeElapsed(startTime);
 		}
 		
 		//save the effective size of the population
 		populationSize = i;
+		
+		p.bestInd = getFittest();
 	}
 	
 	//find the solution with the maximum fit

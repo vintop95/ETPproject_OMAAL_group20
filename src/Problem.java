@@ -76,6 +76,7 @@ public class Problem {
 	private int N_TIMESLOTS;
 	//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
 	private int[][] conflictMatrix;
+	String instanceName;
 	//needed 2 forms for algorithmic reasons:
 	//in priorityqueue and in array.
 	private PriorityQueue<SortedExam> sortedExams;
@@ -84,17 +85,21 @@ public class Problem {
 	private HashSet<Integer> timeslotSet;
 	private List<Integer> examSet;
 	
+	public Individual bestInd; //may be useful in case in which there are just one ind for population
+	
 	public Problem(String instanceName) {
 		if(instanceName != null) {
-			N_EXAMS = readNExams(instanceName);
-			N_TIMESLOTS = readNTimeslots(instanceName);
-			generateConflicts(instanceName);
+			this.instanceName = instanceName;
+			N_EXAMS = readNExams();
+			N_TIMESLOTS = readNTimeslots();
+			generateConflicts();
 			generateSortedExams();
 			generateSets();
 		}
+		
 	}
 	
-	private int readNTimeslots(String instanceName){
+	private int readNTimeslots(){
 		int n=0;
 
 		try{
@@ -112,7 +117,7 @@ public class Problem {
 		return n;//ritorna n
 	}
 
-	private int readNExams(String instanceName){
+	private int readNExams(){
 		//WE COUNT THE ROWS OF THE FILE .exm
 		//WE ASSUME THAT EXAMS GO FROM 0 TO N_EXAMS-1
 		int nExams=0;
@@ -136,7 +141,7 @@ public class Problem {
 		return nExams;
 	}
 	
-	private void generateConflicts(String instanceName){
+	private void generateConflicts(){
 		//WE ASSUME THAT STUDENTS GO FROM 0 TO N_STUDENTS-1
 		
 			//a vector of students that includes in each element
@@ -240,7 +245,7 @@ public class Problem {
 	
 	
 	//metodo che scrive l'output sul file vuoto creato
-	public void generateOutput(String instanceName, Individual fittest ) { 
+	public void generateOutput(Individual fittest ) { 
 		
 		String fileName = instanceName + "_OMAAL_group20.sol";
 		
@@ -261,44 +266,58 @@ public class Problem {
 		
 	}
 	
-	public void checkOutputFile(String instanceName, Individual fittest) {
+	public Individual readOldFile(){
 		String fileName=instanceName + "_OMAAL_group20.sol";
 		File file=new File(fileName);
 		
 		try{
 			if(file.exists()) {
-				Individual oldfittest=new Individual(this);
+				Individual old=new Individual(this);
 				
 				Scanner in = new Scanner(file);
 				
-				System.out.println("File " + fileName + " may already exist");
 				
 				 while(in.hasNextInt()) {
 				    int i=in.nextInt() - 1;
 				    int allele = in.nextInt() - 1;
-				    oldfittest.setGene(i, allele);
+				    old.setGene(i, allele);
 				 }
 				in.close();
 	
-				if(oldfittest.getCost()>fittest.getCost()) {
-					//file.delete();
-					generateOutput(instanceName,fittest);
-					System.out.println("File " + fileName + " overwritten with a new best solution");
-					}
-				else {
-					System.out.println("File " + fileName + " already contains the best solution");
-					System.out.println("Best solution for "+ instanceName + ":");
-					System.out.println(oldfittest.toString());
-				}
-			
-			} else {
-				generateOutput(instanceName,fittest);
-				System.out.println("File " + fileName + " created");
+				return old;
 			}
 			
 		}catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		return null;
+	}
+	
+	public void checkOutputFile(Individual fittest) {
+		String fileName=instanceName + "_OMAAL_group20.sol";
+		File file=new File(fileName);
+		
+
+		if(file.exists()) {
+			Individual oldfittest=readOldFile();
+
+			if(oldfittest.getCost()>fittest.getCost()) {
+				//file.delete();
+				generateOutput(fittest);
+				System.out.println("File " + fileName + " overwritten with a new best solution");
+				}
+			else {
+				System.out.println("File " + fileName + " already contains the best solution");
+				System.out.println("Best solution for "+ instanceName + ":");
+				System.out.println(oldfittest.toString());
+			}
+		
+		} else {
+			generateOutput(fittest);
+			System.out.println("File " + fileName + " created");
+		}
+
 		
 	}
 }// end of class

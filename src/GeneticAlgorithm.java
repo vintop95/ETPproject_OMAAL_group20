@@ -33,7 +33,7 @@ class GeneticAlgorithm {
 	private static final double elitismRate = 0.2;
 	private static final double uniformRate = 0.5;
 	private static final double mutationRate = 0.15;
-	private static final double maxDeschedulationRate = 0.75;
+	private static final double maxDeschedulationRate = 0.5;
 	private static Problem problem;
 	private static final Random rand = new Random();
 	private static int nonImprovingIterationsCount = 0;
@@ -77,6 +77,11 @@ class GeneticAlgorithm {
 		
 		int elitePopSize = (int) (pop.size() * elitismRate);
 		
+		//if there is more than one pop, you have to save at least one elite
+		//if they are 1, you cannot take always the same elite in the new pop
+		if(pop.size() > 1)
+			elitePopSize = Math.max(elitePopSize, 1);
+		
 		for(int i=0; i< elitePopSize; i++){
 			Individual eliteInd = individualsSortedByFitness.poll().getVal();
 			newPopulation.saveIndividual(i, eliteInd);
@@ -92,41 +97,22 @@ class GeneticAlgorithm {
 			
 			Individual newInd;
 			
-			if( rand.nextDouble() < 0.20){
-				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate;
+			//0.25 is good for instance01
+			int maxNonImprovingIterations = 100;
+			
+			double prob = 0.25 + 0.25 * 
+					Math.min(nonImprovingIterationsCount, maxNonImprovingIterations) / maxNonImprovingIterations;
+			if( rand.nextDouble() < prob ){
+				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate; //
 				newInd = deschedulingOperator(ind1, deschedulationRate);
 			}else{
 				newInd = localSearchOperator(ind1);
 			}
 			
 			
-			if(nonImprovingIterationsCount > 0){
-				
-				
-			}
-			else{
-				
-			}
-			
 			newPopulation.saveIndividual(i, newInd);
 		}
 		
-		nonImprovingIterationsCount = 0;
-		
-		/*			
-		for (int i = 0; i < pop.size(); i++) {
-			//choose the survivors of the tournament
-			Individual indiv1 = tournamentSelection(pop);
-			Individual indiv2 = tournamentSelection(pop);
-			Individual newIndiv = crossover(indiv1, indiv2);
-			newPopulation.saveIndividual(i, newIndiv);
-		}
-		*/
-		
-		// Mutate population
-//		for (int i = 0; i < newPopulation.size(); i++) {
-//			mutate(newPopulation.getIndividual(i));
-//		}
 	
 		//to check if we are in a local minimum
 		
@@ -136,7 +122,16 @@ class GeneticAlgorithm {
 		else {
 			nonImprovingIterationsCount = 0;
 		}
+		
+		updateBestInd(newPopulation.getFittest());
 		return newPopulation;
+	}
+	
+	
+	static void updateBestInd(Individual ind){
+		if( ind.getCost() < problem.bestInd.getCost() ){
+			problem.bestInd = ind;
+		}
 	}
 	
 	// Crossover individuals
