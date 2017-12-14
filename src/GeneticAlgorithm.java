@@ -50,6 +50,7 @@ class GeneticAlgorithm {
 
 		System.out.println("non impr cont:" + nonImprovingIterationsCount);
 		
+		
 		//sort individual by fitness for choosing elite
 		for(int i=0; i<pop.size(); i++){
 			individualsSortedByFitness.add(new Couple(pop.getIndividual(i).getFitness(), pop.getIndividual(i)));

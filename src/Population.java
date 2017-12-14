@@ -17,34 +17,38 @@ class Population {
 		
 		long startTime= System.currentTimeMillis();
 		
-		
-		
 		System.out.println("Generating first population: ");
 		double timeElapsed = EtpSolver.updateTimeElapsed(startTime);
-		
-		
 		double timeLimitRate = 0.33;
 		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
 
+		//this will save the current population size
 		int i=0;
 		
+		//if there is already a feasible solution in the .sol file
+		//we put it in our new population	
 		Individual firstInd = p.readOldFile();
-		
 		if (firstInd != null && firstInd.isLegal() ){
 			saveIndividual(i, firstInd);
 			System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
 			i++;
 		}
-		
-		
+				
+		//this is the minimum number of solutions we need in our population
 		int minSolutionToGenerate = 1;
 		
-		for(; i<size() && (i< minSolutionToGenerate || timeLimitCondition ) ; i++) {
+		
+		//we should generate maxPop exams, but in a time limit 
+		//and the population must have at least 'minSolutionToGenerate' individuals
+		
+		while( i<size() && (i< minSolutionToGenerate || timeLimitCondition ) ) {
+			
 			Individual newInd = new Individual(p);
 			
-			
+			//this loop iterates until a feasible solution is found, but it also should stop
+			//if we already overcame the minimum threshold of generated Individuals 
+			//and we exceeded the time limit
 			boolean feasibleSolFound = false;
-			
 			do{
 				newInd.reinitialize();
 				feasibleSolFound = newInd.generateFeasibleIndividual();
@@ -52,15 +56,14 @@ class Population {
 				timeElapsed = EtpSolver.updateTimeElapsed(startTime);
 				timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
 			}while(! feasibleSolFound && (i< minSolutionToGenerate || timeLimitCondition ));
-			//do that while a feasible solution is not found, but also
-			//if this is not the minSolutionToGenerate-th solution you should stop after a timeLimit
 			
 			
+			//if we exited the loop with a feasible solution
+			//we should save it in the population
 			if(feasibleSolFound){
 				saveIndividual(i, newInd);
 				System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
-			}else{
-				i--;
+				i++;
 			}
 			
 			
@@ -70,6 +73,7 @@ class Population {
 		//save the effective size of the population
 		populationSize = i;
 		
+		//update the best individual found until now
 		p.bestInd = getFittest();
 	}
 	
@@ -78,7 +82,7 @@ class Population {
 		Individual fittest = individuals[0];
 		// Loop through individuals to find fittest
 		for (int i = 1; i < size(); i++) {
-			if (fittest.getFitness() <= getIndividual(i).getFitness()) {
+			if (getIndividual(i).getCost() < fittest.getCost() ) {
 				fittest = getIndividual(i);
 			}
 		}

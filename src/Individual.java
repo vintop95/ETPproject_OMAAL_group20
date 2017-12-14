@@ -168,7 +168,7 @@ class Individual {
 
 		//needed as a second auxiliary queue for collecting exams
 		PriorityQueue<SortedExam> deschedulatedExamToSchedule =
-		new PriorityQueue<SortedExam>(11, new CostWeightComparator());
+		new PriorityQueue<SortedExam>(11, new ConflictComparator());
 		
 		while(! examToSchedule.isEmpty() ){			
 			//pick the most 'greedy' exam
@@ -196,9 +196,7 @@ class Individual {
 			
 			//this vector is used to store for each timeslot
 			//how many exams in conflict with e1 are there
-			int[] occurrency = new int[p.getTimeslots()];
-			int selectedTimeslot = 0;
-			
+			int[] occurrency = new int[p.getTimeslots()];		
 			for(int e2 = 0; e2 < p.getExams(); e2++){
 				boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
 				boolean e2IsAlreadyScheduled = (getGene(e2) != -1);
@@ -209,27 +207,28 @@ class Individual {
 				}
 			}
 			
+			
+			//choose the timeslot with the minimum number
+			//of exams in conflict for e1
+			int selectedTimeslot = 0;
 			for(int t=0; t<p.getTimeslots(); t++){
-				//choose the timeslot with the minimum number
-				//of exams in conflict for e1
 				
-				//TODO: si potrebbe pensare di usare minore o uguale per
-				//diversificare in caso di pareggio?
 				if(occurrency[t]< occurrency[selectedTimeslot])
 					selectedTimeslot = t;
 			}
-			
+						
+			//we get a random optimal timeslot
 			Vector<Integer> optimalTimeslots = new Vector<Integer>();
 			for(int t=0; t<p.getTimeslots(); t++){
 				if(occurrency[t] == occurrency[selectedTimeslot]){
 					optimalTimeslots.add(t);
 				}
 			}
-			
-			//we get a random optimal timeslot
 			selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
-			//descheduliamo gli esami in conflitto con e1 che sono schedulati in
-			//selectedTimeslot, ammesso che ce ne siano
+			
+			
+			//we deschedulate the exams in conflict with e1 that are scheduled
+			//in selectedTimeslot, if there are any
 			if(occurrency[selectedTimeslot] > 0){
 				for(int e2=0; e2<p.getExams(); e2++){
 					boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
@@ -246,15 +245,14 @@ class Individual {
 			//exam1 is finally positioned
 			setGene(e1.id, selectedTimeslot);
 			
-			
-			//nota che nella lista deschedulatedExamToSchedule vanno a finire:
-			// - Gli esami che non siamo riusciti a posizionare perché
-			// non vi era nessun timeslot disponibile
-			// - Gli esami che sono stati deschedulati poiché in
-			// conflitto con quelli definiti sopra
-			//Nel caso della seconda categoria potrebbe anche verificarsi
-			//che occurrency[selectedTimeslot] valga 0 e che quindi,
-			//per poterli posizionare, non si debba deschedulare nessuno
+			//note that the list deschedulatedExamToSchedule will be composed by:
+			// - Exams that we could not place because
+			// there were no timeslot available
+			// - The exams that have been deschedulated because they are in
+			// conflict with those defined before
+			// In the second category it could also occur
+			// that occurrency[selectedTimeslot] is 0 and then,
+			// in order to position them, no one should be deschedulated
 		}
 		
 		return isLegal();
@@ -282,6 +280,8 @@ class Individual {
 	//THIS METHOD MOVES THE SOLUTION INTO THE BEST OF THE NEIGHBORHOOD
 	public void localSearch(){
 		//if you don't find a better timeslot, stay in the same
+		
+		double oldCost = getCost();
 		
 		//we need to recalculate the cost weight of each exam
 		PriorityQueue<SortedExam> examToScheduleCostWeight = calculateExamToScheduleCostWeight();
@@ -315,7 +315,11 @@ class Individual {
 			}
 		} //end while
 		
-		System.out.println("new cost after local search: " + getCost());
+		double newCost = getCost();
+		
+		if(newCost < oldCost){
+			System.out.println("localSearch - bef: " + oldCost + " diff: " + (newCost - oldCost));
+		}
 	}
 	
 	//it returns the set of timeslots complementary to:
