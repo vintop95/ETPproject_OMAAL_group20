@@ -1,25 +1,30 @@
 class Population {
-	//A POPULATION OF populationSize IS COMPOSED BY individuals (POSSIBLE SOLUTIONS)
+	//A POPULATION OF populationSize IS COMPOSED BY individuals (FEASIBLE SOLUTIONS)
 	private int populationSize;
 	private Individual[] individuals;
-	private Individual fittest;
+	private Individual fittest; //We keep the best individual of the population in this variable
 	
 	//CONSTRUCTOR
-	//initialize: if true, population is filled with random solutions
-	//				otherwise it remains empty
+	//boolean initialize: if true, population is filled with random solutions
+	//					  otherwise it remains empty
 	public Population(int size, Problem p, boolean initialize) {
+		//this is the fraction of total computational time we want to dedicate,
+		//in worst cases, to find the first generation
+		double timeLimitRate = 0.33;
+		
+		//this is the minimum number of solutions we need in our population
+		int minSolutionToGenerate = 1;
+				
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		
 		
-		if(! initialize)	
+		if(! initialize )	
 			return;
 		
 		long startTime= System.currentTimeMillis();
 		
-		System.out.println("Generating first population: ");
 		double timeElapsed = EtpSolver.updateTimeElapsed(startTime);
-		double timeLimitRate = 0.33;
 		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
 
 		//this will save the current population size
@@ -34,10 +39,7 @@ class Population {
 			i++;
 		}
 				
-		//this is the minimum number of solutions we need in our population
-		int minSolutionToGenerate = 1;
-		
-		
+
 		//we should generate maxPop exams, but in a time limit 
 		//and the population must have at least 'minSolutionToGenerate' individuals
 		
@@ -62,7 +64,6 @@ class Population {
 			//we should save it in the population
 			if(feasibleSolFound){
 				saveIndividual(i, newInd);
-				System.out.println(i + ": " + getIndividual(i).getCost());
 				i++;
 			}
 			
@@ -77,7 +78,7 @@ class Population {
 		p.updateBestInd( getFittest() );
 	}
 	
-	//find the solution with the maximum fit
+	//return the solution with the maximum fit
 	public Individual getFittest() {
 		return fittest;
 	}

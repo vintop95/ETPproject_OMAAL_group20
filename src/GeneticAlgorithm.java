@@ -1,5 +1,6 @@
 import java.util.*;
 
+//we use this structure to sort individuals by their cost
 class Couple implements Comparable<Couple>{
 	private double key; //cost
 	private Individual val; //individual
@@ -16,10 +17,10 @@ class Couple implements Comparable<Couple>{
 		return val;
 	}
 	
+	//this method is used to define an ordering relationship
+	//between objects of class Couple
 	@Override
 	public int compareTo(Couple c2){
-		//it's inverted for having in the head
-		//of the PriorityQueue the biggest key
 		if (getKey() < c2.getKey())
 			return -1;
 		else if (getKey() > c2.getKey())
@@ -30,28 +31,25 @@ class Couple implements Comparable<Couple>{
 }
 
 class GeneticAlgorithm {
+	private static final Random rand = new Random();
+	
 	private static final double elitismRate = 0.2;
 	private static final double maxDeschedulationRate = 1;
-	private static Problem problem;
-	private static final Random rand = new Random();
 	private static int nonImprovingIterationsCount = 0;
 	
+	private static Problem problem;
 	private static PriorityQueue<Couple> individualsSortedByCost = new PriorityQueue<Couple>();
 	
-	
+
 	public static void setProblem(Problem p) {
 		GeneticAlgorithm.problem = p;
 		FitnessFunct.setProblem(p);
 	}
 
-	
-	
-	public static Population evolvePopulation(Population pop) {
-
-		System.out.println("non impr cont:" + nonImprovingIterationsCount);
+	//This method returns a new population evolved from 'pop'
+	public static Population evolvePopulation(Population pop) {		
 		
-		
-		//sort individual by fitness for choosing elite
+		//sort individual by their cost to choose the elite ones
 		for(int i=0; i<pop.size(); i++){
 			individualsSortedByCost.add(new Couple(pop.getIndividual(i).getCost(), pop.getIndividual(i)));
 		}
@@ -59,7 +57,7 @@ class GeneticAlgorithm {
 		//create a new uninitialized population
 		Population newPopulation = new Population(pop.size(), problem, false);
 		
-		//calculate how many elite to save
+		//calculate how many elite individuals should be saved
 		int elitePopSize = (int) (pop.size() * elitismRate);
 		
 		//if there is more than one individual, you have to save at least one elite individual.
@@ -74,34 +72,35 @@ class GeneticAlgorithm {
 			newPopulation.saveIndividual(i, eliteInd);
 		}
 		
-		//generating new individuals from the existing ones
+		//generating the remaining individuals of the new population
+		//from the existing ones
 		for(int i=elitePopSize; i< pop.size(); i++){
 			Individual ind1 = randomIndividual(pop);
 			
 			Individual newInd;
 			
-			//0.25 is good for instance01
 			//probability to mutate the solution starts from 25%
 			//and eventually increases until 50% if population
 			//hasn't been improving for more than 'maxNonImprovingIterations' iterations
 			int maxNonImprovingIterations = 100;
 			double prob = 0.25 + 0.25 * 
 					Math.min(nonImprovingIterationsCount, maxNonImprovingIterations) / maxNonImprovingIterations;
-			
+		
+			//we extract a random number between 0 and 1
 			if( rand.nextDouble() < prob ){
-				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate; //
+				//in this case we mutate an existing individual
+				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate;
 				newInd = deschedulingOperator(ind1, deschedulationRate);
 			}else{
+				//in this case we try to optimize an existing individual
 				newInd = localSearchOperator(ind1);
 			}
-			
 			
 			newPopulation.saveIndividual(i, newInd);
 		}
 		
 	
-		//to check if we are in a local minimum
-		
+		//we use a counter to check if we are stuck in a local minimum
 		if(pop.getFittest().getCost() == newPopulation.getFittest().getCost()) {
 			nonImprovingIterationsCount++;
 		}
@@ -110,19 +109,19 @@ class GeneticAlgorithm {
 		}
 		
 		
+		//we need to update the best individual for the entire instance
 		problem.updateBestInd( newPopulation.getFittest() );
-		
 		
 		return newPopulation;
 	}
 	
 	
-	
-	
-	//used to mutate feasible sol to other feasible sol
+
+	//used to mutate feasible sol to another feasible sol
 	private static Individual deschedulingOperator(Individual indiv, double deschedulationRate){
 		Individual newInd = new Individual(indiv);
-		newInd.deschedulateRandomExams(deschedulationRate);
+		//this method deschedulate random exams from solution 'indiv'
+		newInd.descheduleRandomExams(deschedulationRate);
 
 		//it tries to generate a solution for 'maxIterations' iterations
 		boolean feasibleSolFound = false;
@@ -138,14 +137,14 @@ class GeneticAlgorithm {
 		return newInd;
 	}
 	
-	//used to get the best sol in the neighborhood
+	//used to get the best solution in the neighborhood
 	private static Individual localSearchOperator(Individual indiv){
 		Individual newInd = new Individual(indiv);
 		newInd.localSearch();
 		return newInd;
 	}
 	
-	
+	//to get a random individual
 	private static Individual randomIndividual(Population pop){
 		int indexRandomInd = rand.nextInt(pop.size());
 		return pop.getIndividual(indexRandomInd);

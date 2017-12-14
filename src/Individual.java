@@ -8,31 +8,26 @@ class Individual {
 	//0) GENERICS:
 	//individual = chromosome: a solution, a timetable, a set of timeslots composed by exams
 	//gene: a component of the solution, in this case an exam
-	//allele: the value of the gene, in this case a timeslot relative to an exam
-	//fitness: how good is a solution. It depends from the objective function value
+	//allele: the value of a gene, in this case a timeslot relative to an exam
 	
 	//1) ATTRIBUTES
 	//rand: useful to get random numbers
 	private Random rand = new Random();
 	//numOfGenes: number of exams
-	//numOfAlleles: number of the possible timeslots in which an exam could be scheduled
+	//numOfAlleles: number of the possible timeslots in which an exam can be scheduled
 	private int numOfGenes; 
 	private int numOfAlleles;
-	//WE REPRESENT THE SOLUTION IN TWO FORMS
-	//a) genes: it's the first way we can codify the solution
-	//		 each gene (exam) contains an allele (a timeslot)
-	//b) timeslots: it's the second possible way to represent the solution:
-	//			 a vector in which each element is a timeslot
-	//			 hashset<Integer> is a set of exams in that timeslot
+	//we represent an individual/solution as a vector wich has the size of N_EXAMS
+	//in each cell we will write the timeslot in wich the exam is scheduled
 	private Vector<Integer> genes;
 	
-	//
 	private Problem p;
 		
-	//this is the set of exams TO SCHEDULATE
+	//this is the set of exams TO SCHEDULE
 	PriorityQueue<SortedExam> examToSchedule;
 	
-	//
+	//we use this support variable to avoid to calculate 
+	//objective function and feasibility more than once
 	private boolean costIsCalculated = false;
 	private double cost;
 	private boolean legalityIsCalculated = false;
@@ -62,7 +57,7 @@ class Individual {
 		genes = new Vector<Integer>(ind.genes);
 	}
 	
-	//change the timeslot of exam in newTimeSlot
+	//change the timeslot of an exam with newTimeSlot
 	public Individual(Individual ind,int exam, int newTimeSlot){
 		//call the other constructor
 		this(ind);
@@ -82,9 +77,9 @@ class Individual {
 			chromosome += (i + 1) + " " + (getGene(i) + 1) + "\n";
 		}
 		if(isLegal())
-			chromosome += "LEGAL (n of confl: " + FitnessFunct.nOfConflicts(this) + ")\n";
+			chromosome += "LEGAL \n";
 		else
-			chromosome += "ILLEGAL (n of confl: " + FitnessFunct.nOfConflicts(this) + ")\n";
+			chromosome += "ILLEGAL \n";
 		chromosome += "Penalty: " + getCost();
 		return chromosome;
 	}
@@ -124,32 +119,32 @@ class Individual {
 		}
 		return legal;
 	}
-	
-	public void deschedulateRandomExams(double percOfExamsToDesched){
+	//this method actually mutate a solution, descheduling a fraction of exams
+	//equal to 'percOfExamsToDesched'
+	public void descheduleRandomExams(double percOfExamsToDesched){
 		
 		int nOfExamsToDesched = (int) (percOfExamsToDesched * size());
 		
 		List<Integer> examsToDeschedulate = new ArrayList<Integer>(p.getExamSet());
 		
-		//it shuffles the list
+		//it shuffles the complete list of exam
 		Collections.shuffle(examsToDeschedulate);
-		
+		//and select only a fraction of it
 		Iterator<Integer> it = examsToDeschedulate.iterator();
 		for(int i=0; i<nOfExamsToDesched; i++){
 			int exId = it.next();
 			setGene( exId, -1);
-			//set exams to schedule for the feasible generator
+			//add the selected exam to the ones that have to be re-scheduled
 			SortedExam se = p.getSortedExam(exId);
 			examToSchedule.add(se);		
 		}
 	}
 	
-	
+	//this method assigns an exam to a feasible timeslot
 	private void assignExamInRandomTimeslot(int exam, HashSet<Integer> availableTimeslot){
 		
 		Iterator<Integer> it = availableTimeslot.iterator();
-		for (int t = rand.nextInt(availableTimeslot.size());
-				t > 0; t--){
+		for (int t = rand.nextInt(availableTimeslot.size()); t > 0; t--){
 			it.next();
 		}
 		
@@ -158,7 +153,7 @@ class Individual {
 		setGene(exam, pickedTimeslot);
 	}
 	
-
+	//this method could surrend and return false when it can't find a feasible solution
 	public boolean generateFeasibleIndividual(){
 		
 		//needed as a second auxiliary queue for collecting exams
@@ -166,17 +161,17 @@ class Individual {
 		new PriorityQueue<SortedExam>(11, new ConflictComparator());
 		
 		while(! examToSchedule.isEmpty() ){			
-			//pick the most 'greedy' exam
+			//pick the most conflicting exam
 			SortedExam e1 = examToSchedule.poll();
 			
 			HashSet<Integer> availableTimeslot = generateE1TimeslotSet(e1, p.getTimeslotSet());	
 			
-			//if there is at least one timeslot free to assign e1
+			//if there is at least one feasible timeslot to place exam e1
 			if( ! availableTimeslot.isEmpty() ){
 				//assign e1 in a random timeslot
 				assignExamInRandomTimeslot(e1.id, availableTimeslot);
 			} else {
-				//add e1 in the new queue for schedule it
+				//otherwise add e1 in the new queue to schedule it later
 				deschedulatedExamToSchedule.add(e1);
 			}
 		}
@@ -188,7 +183,7 @@ class Individual {
 		int nOfIterationMax = p.getExams()*2;
 
 		//we iterate this loop until there are no more exams to schedule
-		//or we exceeded the given number of maximum iterations
+		//or if we exceeded the given number of maximum iterations
 		while(! deschedulatedExamToSchedule.isEmpty() && nOfIteration < nOfIterationMax){
 			nOfIteration++;
 			//pick the most conflicting exam
@@ -261,7 +256,8 @@ class Individual {
 		
 		return isLegal();
 	}
-	
+	//this method is required to reset a solution if we weren't 
+	//able to find a feasible solution
 	public void reinitialize(){
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 		genes = new Vector<Integer>();
@@ -272,7 +268,8 @@ class Individual {
 		costIsCalculated = false;
 	}
 	
-	
+	//this method fills the queue in wich exams are ordered by 
+	//their impact on the objective function
 	private PriorityQueue<SortedExam> calculateExamToScheduleCostWeight(){
 		PriorityQueue<SortedExam> examToScheduleCostWeight = new PriorityQueue<SortedExam>(11, new CostWeightComparator());
 		
@@ -285,7 +282,7 @@ class Individual {
 	
 	//THIS METHOD MOVES THE SOLUTION INTO THE BEST OF THE NEIGHBORHOOD
 	public void localSearch(){
-		//if you don't find a better timeslot, stay in the same
+		//main idea: if you don't find a better timeslot, stay in the same
 		
 		
 		//we need to recalculate the cost weight of each exam
@@ -322,14 +319,13 @@ class Individual {
 		} //end while
 		
 		
-		System.out.println("localSearch - newVal: " + (getCost()));
+		//System.out.println("localSearch - newVal: " + (getCost()));
 
 	}
 	
-	//it returns the set of timeslots complementary to:
-	//timeslots in which are scheduled all e2 (in conflict with e1)
+	//it returns the set of timeslots in which exam e1 can actually be schedule
 	private HashSet<Integer> generateE1TimeslotSet(SortedExam e1, HashSet<Integer> timeslotSet){
-		//I clone the timeslot set complete, in order to remove bad timeslots from there
+		//I clone the complete timeslot set, in order to remove infeasible timeslots from there
 		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
 		
 		//we are iterating only through the exams in conflicts with e1
@@ -349,7 +345,7 @@ class Individual {
 		return e1TimeslotSet;
 	}
 	
-	//Calculates the advantage of moving an examToMove in the newTimeSlot
+	//Calculates the advantage of moving an exam 'examToMove' in the 'newTimeSlot'
 	double costVariation(int examToMove, int newTimeslot) {
 		double costVar=0;
 		//we create a new temporary solution

@@ -3,11 +3,11 @@ import java.util.Vector;
 
 public class SortedExam{
 	
-	final public int id;       //n of exams
+	final public int id;       //id of the exam
 	final public int nOfConfl; //key
-	public double costWeight; //how much this exam influence cost of OF 
-									//part of the penalty due to this exam
-	
+	public double costWeight; //how much this exam impacts on the cost of the obj. funct.
+								
+	//we use this vector to store the exams which are in conflict with this exam
 	public Vector<Integer> conflictingExams;
 	
 	public SortedExam(int id, int nOfConfl, Vector<Integer> conflictingExams){
@@ -27,7 +27,7 @@ public class SortedExam{
 		return (se.id == this.id);
 	}
 }
-
+//this class is required to compare exams on their number of conflicts
 class ConflictComparator implements Comparator<SortedExam> {
 	
 	public int compare(SortedExam c1, SortedExam c2){
@@ -40,7 +40,7 @@ class ConflictComparator implements Comparator<SortedExam> {
 	}
 	
 }
-
+//this class is required to compare exams on their impact on the obj. funct.
 class CostWeightComparator implements Comparator<SortedExam> {
 	
 	public int compare(SortedExam c1, SortedExam c2){

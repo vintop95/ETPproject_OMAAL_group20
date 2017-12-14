@@ -4,7 +4,7 @@ class FitnessFunct {
 	private static double w[] = {0, 16.0, 8.0, 4.0, 2.0, 1.0};
 	
 
-	//IT CALCULATES THE OBJECTIVE FUNCTION VALUE
+	//IT CALCULATES THE OBJECTIVE FUNCTION VALUE OF AN INDIVIDUAL
 	protected static double getCost(Individual timetable) {
 		double cost= 0.0;
 		int numExams= p.getExams();
@@ -22,6 +22,7 @@ class FitnessFunct {
 	}
 	
 	//it calculates the costWeight of the exam1
+	//i.e. the impact of exam1 on the total objective function
 	protected static double getCostWeight(Individual timetable, int exam1) {
 		double costWeight= 0;
 		int numExams= p.getExams();
@@ -59,24 +60,6 @@ class FitnessFunct {
 		return true;
 	}
 	
-	//it counts the number of conflicts in the same timeslot
-	protected static int nOfConflicts(Individual timetable) {
-		int numExams= p.getExams();
-		int count = 0;
-		
-		for(int exam1=0; exam1<numExams; exam1++) {
-			int period1 = timetable.getGene(exam1);
-			for(int exam2=exam1+1; exam2<numExams; exam2++) {
-				int period2 = timetable.getGene(exam2);
-				if(period1 == period2) {
-					if(p.areExamsInConflicts(exam1, exam2))
-						count++; 
-				}
-			}
-		}
-		
-		return count;
-	}
 	
 	//OTHER METHODS
 	public static void setProblem(Problem p) {

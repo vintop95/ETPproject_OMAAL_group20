@@ -3,7 +3,6 @@
 public class EtpSolver {
 	
 	static public double timeLimit;
-	//SHOULD BE OK
 	
 	public static void main(String[] args) {
 		//usage: java -jar EtpSolver.jar instancename -t timelimit
@@ -27,23 +26,28 @@ public class EtpSolver {
 		
 		double timeElapsed = updateTimeElapsed(startTime);
 		while(timeElapsed < timeLimit){
-			
+			double currentCost = p.getBestInd().getCost();
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
-			
-			System.out.println("best solution now: " + p.getBestInd().getCost());
-
+			double newCost= p.getBestInd().getCost();
+			if(newCost<currentCost){
+				System.out.println("best solution now: " + p.getBestInd().getCost());
+			}
 			timeElapsed = updateTimeElapsed(startTime);
 			
 		}
 		System.out.println("Best solution found in " + timeElapsed + " seconds:");
 		System.out.println(p.getBestInd());
+		
+		//print the best solution in the file 
 		p.checkOutputFile(p.getBestInd());
+	
 	}
 	
+	//this method returns the seconds elapsed from the start
 	public static double updateTimeElapsed(long startTime){
 		long currentTime = System.currentTimeMillis();
 		double elapsedTime = (currentTime - startTime)/1000;
 		return elapsedTime;
 	}
 
-}//end of class
+}

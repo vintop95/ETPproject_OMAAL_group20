@@ -11,18 +11,21 @@ public class Problem {
 	private int N_EXAMS;
 	private int N_STUDENTS;
 	private int N_TIMESLOTS;
-	//TODO: USE ANOTHER DATA STRUCTURE INSTEAD OF MATRIX FOR CONFLICT MATRIX?
 	private int[][] conflictMatrix;
 	String instanceName;
 	//needed 2 forms for algorithmic reasons:
 	//in priorityqueue and in array.
+	//the exams in 'sortedExams' are sorted by their number of conflicts
 	private PriorityQueue<SortedExam> sortedExams;
-	//exams ordered by id in the array, but they are object SortedExam
+	//the exams in 'arraySortedExams' are ordered by id
 	private SortedExam[] arraySortedExams; 
+	
+	
 	private HashSet<Integer> timeslotSet;
 	private List<Integer> examSet;
 	
-	private Individual bestInd; //may be useful in case in which there are just one ind for population
+	//we save here the best current individual found for the instance
+	private Individual bestInd;
 	
 	public Individual getBestInd(){
 		return bestInd;
@@ -48,6 +51,7 @@ public class Problem {
 		
 	}
 	
+	//it returns the number of timeslots for the instance
 	private int readNTimeslots(){
 		int n=0;
 
@@ -63,16 +67,15 @@ public class Problem {
         	System.exit(-1);
         }
 		
-		return n;//ritorna n
+		return n;
 	}
 
+	//it returns the number of exams for the instance
 	private int readNExams(){
-		//WE COUNT THE ROWS OF THE FILE .exm
 		//WE ASSUME THAT EXAMS GO FROM 0 TO N_EXAMS-1
 		int nExams=0;
 		
 		try{
-			//counting rows of the file. it works, trust me!
 			Scanner in = new Scanner(new File(instanceName + ".exm"));
 			
 			while( in.hasNext()){
@@ -95,55 +98,56 @@ public class Problem {
 	private void generateConflicts(){
 		//WE ASSUME THAT STUDENTS GO FROM 0 TO N_STUDENTS-1
 		
-			//a vector of students that includes in each element
-			//a list of exams in which the student is enrolled
-			//Vector allows us to insert numbers in a dynamic array
-			Vector<Vector<Integer>> studentList = new Vector<Vector<Integer>>();
-			conflictMatrix = new int[N_EXAMS][N_EXAMS];
-			try {
-			//reading exams for each student
-				Scanner in = new Scanner(new File(instanceName + ".stu"));
-			
-				while (in.hasNextLine() && in.hasNext()){	
-					//READ SID WITHOUT INITIAL 's'
-					StringBuilder sb = new StringBuilder(in.next());
-					sb.deleteCharAt(0);
-					int sId = Integer.parseInt(sb.toString()) - 1;//we start from studentId 0
-																//READ exam FOR THAT sId
-					String s = in.next();
-					s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
-					int exam = Integer.parseInt(s) - 1;//due to Vector index convention, we start
-													//counting from exam 0
-			
-					//if the student has never enrolled until now
-					if (sId >= studentList.size()){
-						studentList.add(new Vector<Integer>());
-					}
-					//add the exam in the list
-					studentList.get(sId).add(exam);
+		//a vector of students that includes in each element
+		//a list of exams in which the student is enrolled
+		//Vector allows us to insert numbers in a dynamic array
+		Vector<Vector<Integer>> studentList = new Vector<Vector<Integer>>();
+		conflictMatrix = new int[N_EXAMS][N_EXAMS];
+		try {
+		//reading exams for each student
+			Scanner in = new Scanner(new File(instanceName + ".stu"));
+		
+			while (in.hasNextLine() && in.hasNext()){	
+				//READ SID WITHOUT INITIAL 's'
+				StringBuilder sb = new StringBuilder(in.next());
+				sb.deleteCharAt(0);
+				int sId = Integer.parseInt(sb.toString()) - 1;//we start from studentId 0
+															//READ exam FOR THAT sId
+				String s = in.next();
+				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
+				int exam = Integer.parseInt(s) - 1;//due to Vector index convention, we start
+												//counting from exam 0
+		
+				//if the student has never enrolled until now
+				if (sId >= studentList.size()){
+					studentList.add(new Vector<Integer>());
 				}
-				in.close();
-			}catch(FileNotFoundException e) {
-	            System.out.println("File not found: " + instanceName + ".stu");
-	            System.exit(-1);
-	        }
-			N_STUDENTS = studentList.size();
-			//POPULATE CONFLICT MATRIX n
-			for(int s=0; s<N_STUDENTS; s++) {
-				//for each student
-				//we iterate through all the possible couples of exam in which he's enrolled
-				for(int i=0; i<(studentList.get(s).size() - 1); i++) {
-					for(int j=i+1; j<studentList.get(s).size(); j++) {
-						int e1, e2; //the two exams involved
-						e1= studentList.get(s).get(i); 
-						e2= studentList.get(s).get(j);
-						conflictMatrix[e1][e2]++;//increment the corresponding value in the conflict matrix
-						conflictMatrix[e2][e1]++;//in both cases
-						
-					}
+				//add the exam in the list
+				studentList.get(sId).add(exam);
+			}
+			in.close();
+		}catch(FileNotFoundException e) {
+            System.out.println("File not found: " + instanceName + ".stu");
+            System.exit(-1);
+        }
+		N_STUDENTS = studentList.size();
+		//POPULATE CONFLICT MATRIX n
+		for(int s=0; s<N_STUDENTS; s++) {
+			//for each student
+			//we iterate through all the possible couples of exam in which he's enrolled
+			for(int i=0; i<(studentList.get(s).size() - 1); i++) {
+				for(int j=i+1; j<studentList.get(s).size(); j++) {
+					int e1, e2; //the two exams involved
+					e1= studentList.get(s).get(i); 
+					e2= studentList.get(s).get(j);
+					conflictMatrix[e1][e2]++;//increment the corresponding value in the conflict matrix
+					conflictMatrix[e2][e1]++;//in both cases
+					
 				}
-			} 
+			}
+		} 
 	}
+	
 	public int getConflicts(int e1, int e2) {
 		return conflictMatrix[e1][e2];
 	}
@@ -162,6 +166,7 @@ public class Problem {
 	public List<Integer> getExamSet() {return examSet;}
 	
 	
+	//fill the priority queue and the array of object 'SortedExams'
 	private void generateSortedExams(){
 		sortedExams = new PriorityQueue<SortedExam>(11, new ConflictComparator());
 		
@@ -199,27 +204,7 @@ public class Problem {
 	}
 	
 	
-	//metodo che scrive l'output sul file vuoto creato
-	public void generateOutput(Individual fittest ) { 
-		
-		String fileName = instanceName + "_OMAAL_group20.sol";
-		
-		try{
-			FileWriter fw = new FileWriter(fileName);
-			BufferedWriter bw = new BufferedWriter(fw);
-			for(int i=0; i<N_EXAMS; i++) {
-				bw.write((i+1) + "  " + (fittest.getGene(i)+1));
-				if(i < N_EXAMS-1)
-					bw.write("\r\n");
-			}
-			bw.flush();
-			bw.close();
-	     
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
-		
-	}
+	
 	
 	public Individual readOldFile(){
 		String fileName=instanceName + "_OMAAL_group20.sol";
@@ -248,7 +233,7 @@ public class Problem {
 		
 		return null;
 	}
-	
+	//this method generates the output file. It calls generateOutput
 	public void checkOutputFile(Individual fittest) {
 		String fileName=instanceName + "_OMAAL_group20.sol";
 		File file=new File(fileName);
@@ -273,6 +258,29 @@ public class Problem {
 			System.out.println("File " + fileName + " created");
 		}
 
+		
+	}
+	
+	//this method writes the output on an empty file .sol
+	//it's called by 'checkOutputFile'
+	public void generateOutput(Individual fittest ) { 
+		
+		String fileName = instanceName + "_OMAAL_group20.sol";
+		
+		try{
+			FileWriter fw = new FileWriter(fileName);
+			BufferedWriter bw = new BufferedWriter(fw);
+			for(int i=0; i<N_EXAMS; i++) {
+				bw.write((i+1) + "  " + (fittest.getGene(i)+1));
+				if(i < N_EXAMS-1)
+					bw.write("\r\n");
+			}
+			bw.flush();
+			bw.close();
+	     
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
 		
 	}
 }// end of class
