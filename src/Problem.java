@@ -1,8 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.LineNumberReader;
 import java.util.*;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
@@ -84,6 +82,7 @@ public class Problem {
 		return bestInd;
 	}
 	
+	
 	public void updateBestInd( Individual newInd ){
 		if( bestInd == null || ( bestInd != null && newInd.getCost() < bestInd.getCost() )){
 			bestInd = newInd;
@@ -134,7 +133,9 @@ public class Problem {
 				String s = in.next();
 				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
 				nExams = Integer.parseInt(s);
-				int nOfStud = in.nextInt(); //we don't use the number of students enrolling exam
+				
+				//we skip the number of students enrolled in the exam
+				in.nextInt(); 
 			}
 			in.close();
 		} catch(FileNotFoundException e) {

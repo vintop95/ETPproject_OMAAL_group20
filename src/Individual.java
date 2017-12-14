@@ -26,14 +26,17 @@ class Individual {
 	//			 hashset<Integer> is a set of exams in that timeslot
 	private Vector<Integer> genes;
 	
-	//fitness: value of how much a solution is good, in this case the objective function value
-	private double fitness = 0.0;
-	Problem p;
-	
+	//
+	private Problem p;
+		
 	//this is the set of exams TO SCHEDULATE
 	PriorityQueue<SortedExam> examToSchedule;
 	
-	
+	//
+	private boolean costIsCalculated = false;
+	private double cost;
+	private boolean legalityIsCalculated = false;
+	private boolean legal;
 	
 	//2) METHODS
 	//CONSTRUCTORS
@@ -51,12 +54,12 @@ class Individual {
 	}
 	
 	public Individual(Individual ind){
-		this.p = ind.p;
-		this.numOfGenes = p.getExams();
-		this.numOfAlleles = p.getTimeslots();	
+		p = ind.p;
+		numOfGenes = p.getExams();
+		numOfAlleles = p.getTimeslots();	
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 		
-		this.genes = new Vector<Integer>(ind.genes);
+		genes = new Vector<Integer>(ind.genes);
 	}
 	
 	//change the timeslot of exam in newTimeSlot
@@ -98,17 +101,16 @@ class Individual {
 	public void setGene(int i, int allele) {
 		genes.set(i, allele);
 	}
-	
-	public double getFitness() {
-		if(fitness == 0) {
-			fitness = FitnessFunct.evaluate(this);
-		}
-		return fitness;
-	}
-	
+		
 	protected double getCost() {
-		return FitnessFunct.getCost(this);
+		if(! costIsCalculated ){
+			cost = FitnessFunct.getCost(this);
+			costIsCalculated = true;
+		}
+		
+		return cost;
 	}
+	
 	protected double getCostWeight(int exam1) {
 		return FitnessFunct.getCostWeight(this, exam1);
 	}
@@ -116,7 +118,11 @@ class Individual {
 		return this.p;
 	}
 	protected boolean isLegal() {
-		return FitnessFunct.isLegal(this);
+		if(!legalityIsCalculated){
+			legal = FitnessFunct.isLegal(this);
+			legalityIsCalculated = true;
+		}
+		return legal;
 	}
 	
 	public void deschedulateRandomExams(double percOfExamsToDesched){
@@ -155,7 +161,6 @@ class Individual {
 
 	public boolean generateFeasibleIndividual(){
 		
-
 		//needed as a second auxiliary queue for collecting exams
 		PriorityQueue<SortedExam> deschedulatedExamToSchedule =
 		new PriorityQueue<SortedExam>(11, new ConflictComparator());
@@ -191,7 +196,7 @@ class Individual {
 			
 			//this vector is used to store for each timeslot
 			//how many exams in conflict with e1 are there
-			int[] occurrency = new int[p.getTimeslots()];		
+			int[] occurrency = new int[numOfAlleles];		
 			for(int e2 = 0; e2 < p.getExams(); e2++){
 				boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
 				boolean e2IsAlreadyScheduled = (getGene(e2) != -1);
@@ -206,7 +211,7 @@ class Individual {
 			//choose the timeslot with the minimum number
 			//of exams in conflict for e1
 			int selectedTimeslot = 0;
-			for(int t=0; t<p.getTimeslots(); t++){
+			for(int t=0; t<numOfAlleles; t++){
 				
 				if(occurrency[t]< occurrency[selectedTimeslot])
 					selectedTimeslot = t;
@@ -214,7 +219,7 @@ class Individual {
 						
 			//we get a random optimal timeslot
 			Vector<Integer> optimalTimeslots = new Vector<Integer>();
-			for(int t=0; t<p.getTimeslots(); t++){
+			for(int t=0; t<numOfAlleles; t++){
 				if(occurrency[t] == occurrency[selectedTimeslot]){
 					optimalTimeslots.add(t);
 				}
@@ -230,10 +235,9 @@ class Individual {
 					//id of conflicting exams
 					int e2 = e1.conflictingExams.get(i);
 					
-					boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
 					boolean e2IsInTheSelectedTimeslot = (getGene(e2) == selectedTimeslot);
 					
-					if (e2IsInConflictWithE1 && e2IsInTheSelectedTimeslot){
+					if (e2IsInTheSelectedTimeslot){
 						setGene(e2, -1);
 						//inseriamo gli esami deschedulati nella stessa lista 
 						deschedulatedExamToSchedule.add(p.getSortedExam(e2));
@@ -254,6 +258,7 @@ class Individual {
 			// in order to position them, no one should be deschedulated
 		}
 		
+		
 		return isLegal();
 	}
 	
@@ -263,6 +268,8 @@ class Individual {
 		for(int i=0; i<numOfGenes; i++){
 			genes.add(-1);
 		}
+		legalityIsCalculated = false;
+		costIsCalculated = false;
 	}
 	
 	
@@ -280,7 +287,6 @@ class Individual {
 	public void localSearch(){
 		//if you don't find a better timeslot, stay in the same
 		
-		double oldCost = getCost();
 		
 		//we need to recalculate the cost weight of each exam
 		PriorityQueue<SortedExam> examToScheduleCostWeight = calculateExamToScheduleCostWeight();
@@ -312,13 +318,12 @@ class Individual {
 					setGene(e1.getId(), bestTimeslot);
 				}
 			}
+			
 		} //end while
 		
-		double newCost = getCost();
 		
-		if(newCost < oldCost){
-			System.out.println("localSearch - bef: " + oldCost + " diff: " + (newCost - oldCost));
-		}
+		System.out.println("localSearch - newVal: " + (getCost()));
+
 	}
 	
 	//it returns the set of timeslots complementary to:

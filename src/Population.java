@@ -30,7 +30,7 @@ class Population {
 		Individual firstInd = p.readOldFile();
 		if (firstInd != null && firstInd.isLegal() ){
 			saveIndividual(i, firstInd);
-			System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+			System.out.println(i + ": " + getIndividual(i).getCost());
 			i++;
 		}
 				
@@ -62,7 +62,7 @@ class Population {
 			//we should save it in the population
 			if(feasibleSolFound){
 				saveIndividual(i, newInd);
-				System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+				System.out.println(i + ": " + getIndividual(i).getCost());
 				i++;
 			}
 			
@@ -83,16 +83,16 @@ class Population {
 	}
 		
 	
-	//TO ACCESS TO AN INDIVIDUAL
+	//to save an individual 'indiv' in the population in position 'index'
 	public void saveIndividual(int index, Individual indiv) {
 		double newCost = indiv.getCost();
 		
+		//we update the fittest individual of the population
 		if(fittest == null || (fittest != null && newCost < fittest.getCost()) ){
 			fittest = indiv;
 		}
 		
 		individuals[index] = indiv;
-		
 	}
 	public Individual getIndividual(int index) {
 		return individuals[index];

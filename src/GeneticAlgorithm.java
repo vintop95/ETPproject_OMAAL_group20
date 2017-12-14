@@ -31,7 +31,7 @@ class Couple implements Comparable<Couple>{
 
 class GeneticAlgorithm {
 	private static final double elitismRate = 0.2;
-	private static final double maxDeschedulationRate = 0.5;
+	private static final double maxDeschedulationRate = 1;
 	private static Problem problem;
 	private static final Random rand = new Random();
 	private static int nonImprovingIterationsCount = 0;
@@ -124,13 +124,14 @@ class GeneticAlgorithm {
 		Individual newInd = new Individual(indiv);
 		newInd.deschedulateRandomExams(deschedulationRate);
 
+		//it tries to generate a solution for 'maxIterations' iterations
 		boolean feasibleSolFound = false;
-		int maxIterations = 10000;
+		int maxIterations = 1000;
 		for(int i=0; i <maxIterations && ! feasibleSolFound; i++){
 			feasibleSolFound = newInd.generateFeasibleIndividual();
 		}
 
-		
+		//if the solution found is not feasible, we return the old individual 'indiv'
 		if(! feasibleSolFound)
 			newInd = indiv;
 		

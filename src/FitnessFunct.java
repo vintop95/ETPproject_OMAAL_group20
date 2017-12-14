@@ -1,32 +1,7 @@
 //THIS CLASS HANDLES THE OBJECTIVE FUNCTION
 class FitnessFunct {
 	private static Problem p;
-	private static final int MAX_COEFF = 100;
-	private static final int MAX_FIT = 2; //greater than 1
-	private static final int STEP = 1; 
-	private static double w[] = {MAX_COEFF, 16.0, 8.0, 4.0, 2.0, 1.0};
-	
-	//IT RETURNS THE FITNESS OF A SOLUTION (THAT IS DIFFERENT FROM THE OBJ FUNCT VALUE)
-	public static double evaluate(Individual timetable) {
-		//WE SET A MAXIMUM FITNESS VALUE:
-		//IF THE OBJ FUNCT VALUE IT'S LOWER THAN THE MAXIMUM FIT
-		//THE HIGHER THE OBJ FUNCT VALUE, THE LOWER IS THE FITNESS
-		//OTHERWISE (THE OBJ FUNCT IS VERY HIGH) WE CONSIDER IT VERY FIT
-		double fitness;
-		double cost = getCost(timetable);
-		if(cost != 0){
-			//it's for sure less than 1
-			fitness = 1/cost; 
-		}else{
-			fitness = MAX_FIT - STEP;
-		}
-
-		//A LEGAL SOLUTION MUST HAVE A HIGHER FIT TO NEVER SELECT NOT LEGAL SOLUTIONS
-		if(isLegal(timetable))
-			fitness = fitness + STEP;
-		
-		return fitness;
-	}
+	private static double w[] = {0, 16.0, 8.0, 4.0, 2.0, 1.0};
 	
 
 	//IT CALCULATES THE OBJECTIVE FUNCTION VALUE
