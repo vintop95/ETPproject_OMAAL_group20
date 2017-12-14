@@ -1,24 +1,5 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+//CLASS THAT CONTAINS THE MAIN
 
-//TODO: CREATE DEDICATED CLASSES FOR EVERY PROCESS OF THE ALGORITHM
-
-
-
-//TODO: gestire il tempo in questo modo 
-/*long startTime = System.currentTimeMillis();
-
-...
-...
-// operazioni ...
-...
-...
-
-long endTime = System.currentTimeMillis();
-long seconds = (endTime - startTime) / 1000;
-*/
 public class EtpSolver {
 	
 	static public double timeLimit;
@@ -33,10 +14,9 @@ public class EtpSolver {
 		}
 		
 		final int popSize = 15;
-		//final int maxNonImprovingIterations = 1000;
 		final String instanceName = args[0];
 		timeLimit = Integer.parseInt(args[2]);
-		//we start counting
+		//we start counting time
 		long startTime= System.currentTimeMillis();
 		
 		
