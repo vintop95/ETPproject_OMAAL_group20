@@ -343,19 +343,14 @@ class Individual {
 			//id of conflicting exams
 			int e2 = e1.conflictingExams.get(i);
 			
-			boolean e2IsScheduled = getGene(e2) >= 0;
+			boolean e2IsScheduled = (getGene(e2) >= 0);
 			if(e2IsScheduled){
 				//we should remove the timeslot because it's not
 				//available anymore for e1
 				e1TimeslotSet.remove(getGene(e2));
 			}
 		}
-		
-		//TODO: check if variable nSlotsFree is shared
-		//among all structures in the algorithm
-		//TODO; nSlotsFree is potentially useless
-		e1.nSlotsFree = e1TimeslotSet.size();
-		
+
 		return e1TimeslotSet;
 	}
 	

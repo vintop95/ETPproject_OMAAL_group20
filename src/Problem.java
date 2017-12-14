@@ -14,8 +14,6 @@ class SortedExam{
 	final public int nOfConfl; //key
 	public double costWeight; //how much this exam influence cost of OF 
 									//part of the penalty due to this exam
-	public int nSlotsFree; //calculate when you check the exams in conflict
-						   //in an iteration of the algorithm to generate a sol
 	
 	public Vector<Integer> conflictingExams;
 	
@@ -24,13 +22,6 @@ class SortedExam{
 		this.nOfConfl = nOfConfl;
 		this.costWeight = -1;
 		this.conflictingExams = conflictingExams;
-	}
-	
-	public SortedExam(SortedExam old){
-		this.id = old.id;
-		this.nOfConfl = old.nOfConfl;
-		this.nSlotsFree = old.nSlotsFree;
-		this.costWeight=old.costWeight;
 	}
 	
 	public int getId(){
@@ -128,13 +119,13 @@ public class Problem {
 			//counting rows of the file. it works, trust me!
 			Scanner in = new Scanner(new File(instanceName + ".exm"));
 			
-			int stud;//useless
 			while( in.hasNext()){
 				String s = in.next();
 				s = s.replaceFirst("^0+(?!$)", ""); //regex that delete leading zeros
 				nExams = Integer.parseInt(s);
-				stud = in.nextInt();
+				int nOfStud = in.nextInt(); //we don't use the number of students enrolling exam
 			}
+			in.close();
 		} catch(FileNotFoundException e) {
             System.out.println("File not found: " + instanceName + ".exm");
             System.exit(-1);
