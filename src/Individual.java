@@ -162,9 +162,7 @@ class Individual {
 		setGene(exam, pickedTimeslot);
 	}
 	
-	//TODO: limit number of iteration OF generateFeasibleIndividual
-	//TODO: DA COMPLETARE, ANCORA NON BUONA PER LA INSTANCE2
-	
+
 	public boolean generateFeasibleIndividual(){
 		
 

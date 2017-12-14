@@ -31,8 +31,6 @@ class Couple implements Comparable<Couple>{
 
 class GeneticAlgorithm {
 	private static final double elitismRate = 0.2;
-	private static final double uniformRate = 0.5;
-	private static final double mutationRate = 0.15;
 	private static final double maxDeschedulationRate = 0.5;
 	private static Problem problem;
 	private static final Random rand = new Random();
@@ -45,27 +43,12 @@ class GeneticAlgorithm {
 		GeneticAlgorithm.problem = p;
 		FitnessFunct.setProblem(p);
 	}
-	public static int getNonImprovingIterationsCount(){
-		return nonImprovingIterationsCount;
-	}
+
 	
-	//methods:
 	
-//	public static double getSummary(Population pop){
-//		double nLegals = 0;
-//		for(int i=0; i< pop.size();i++){
-//			if (pop.getIndividual(i).isLegal())
-//				nLegals++;
-//		}
-//		return nLegals / pop.size();
-//	}
-	
-	static int nOfCycles = 0;
 	public static Population evolvePopulation(Population pop) {
-		nOfCycles++;
-		//System.out.println(nOfCycles);
+
 		System.out.println("non impr cont:" + nonImprovingIterationsCount);
-		
 		
 		//sort individual by fitness for choosing elite
 		for(int i=0; i<pop.size(); i++){
@@ -75,6 +58,7 @@ class GeneticAlgorithm {
 		//create a new uninitialized population
 		Population newPopulation = new Population(pop.size(), problem, false);
 		
+		//calculate how many elite to save
 		int elitePopSize = (int) (pop.size() * elitismRate);
 		
 		//if there is more than one pop, you have to save at least one elite
@@ -82,26 +66,23 @@ class GeneticAlgorithm {
 		if(pop.size() > 1)
 			elitePopSize = Math.max(elitePopSize, 1);
 		
+		//saving elite
 		for(int i=0; i< elitePopSize; i++){
 			Individual eliteInd = individualsSortedByFitness.poll().getVal();
 			newPopulation.saveIndividual(i, eliteInd);
 		}
 		
-		
+		//generating new individuals from the existing
 		for(int i=elitePopSize; i< pop.size(); i++){
 			Individual ind1 = randomIndividual(pop);
-			
-			//crossover between 2 individuals?
-			//Individual ind2 = randomIndividual(pop);
-			//Individual newInd = crossover(ind1, ind2);
 			
 			Individual newInd;
 			
 			//0.25 is good for instance01
 			int maxNonImprovingIterations = 100;
-			
 			double prob = 0.25 + 0.25 * 
 					Math.min(nonImprovingIterationsCount, maxNonImprovingIterations) / maxNonImprovingIterations;
+			
 			if( rand.nextDouble() < prob ){
 				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate; //
 				newInd = deschedulingOperator(ind1, deschedulationRate);
@@ -134,46 +115,9 @@ class GeneticAlgorithm {
 		}
 	}
 	
-	// Crossover individuals
-	
-	/*private static Individual crossover(Individual indiv1, Individual indiv2) {
-		Individual newSol = new Individual(problem);
-		//select two cutting point
-		int src = rand.nextInt(problem.getExams());
-		int dest= rand.nextInt(problem.getExams());
-		if(src > dest) {
-			int temp = src;
-			src = dest;
-			dest= temp;
-		}
-		for(int i=0; i<indiv1.size(); i++) {
-			if(i < src || i > dest) {
-				//outside of the selected region we take alleles from indiv1
-				newSol.setGene(i, indiv1.getGene(i));
-			}
-			else {
-				//inside the selected region we take alleles from indiv2
-				newSol.setGene(i, indiv2.getGene(i));
-			}
-		}
-		return newSol;
-	}
-	*/
-	
-	private static Individual crossover(Individual indiv1, Individual indiv2) {
-		Individual newSol = new Individual(problem);
-		for (int i = 0; i < indiv1.size(); i++) {
-			if (Math.random() <= uniformRate) {
-				newSol.setGene(i, indiv1.getGene(i));
-			} else {
-				newSol.setGene(i, indiv2.getGene(i));
-			}
-		}
-		return newSol;
-	}
 	
 	
-	//used to go in a neighbor FROM A indiv FEASIBLE
+	//used to mutate feasible sol to other feasible sol
 	private static Individual deschedulingOperator(Individual indiv, double deschedulationRate){
 		Individual newInd = new Individual(indiv);
 		newInd.deschedulateRandomExams(deschedulationRate);
@@ -191,43 +135,12 @@ class GeneticAlgorithm {
 		return newInd;
 	}
 	
+	//used to get the best sol in the neighborhood
 	private static Individual localSearchOperator(Individual indiv){
 		Individual newInd = new Individual(indiv);
 		newInd.localSearch();
 		return newInd;
 	}
-	
-	// Mutate an individual
-	/*private static void mutate(Individual indiv) {
-		// Loop through genes
-		for (int i = 0; i < indiv.size(); i++) {
-			if (Math.random() <= mutationRate) {
-				// Create random allele
-				int allele = rand.nextInt(problem.getTimeslots());
-				indiv.setGene(i, allele);
-			}
-		}
-	}*/
-	
-	// Select individuals for crossover
-	// Tournament is a nice term to describe the Hunger Games of life
-	/*private static Individual tournamentSelection(Population pop) {
-		// Create a tournament population
-		final int tournamentSize = pop.size() / 10;
-		Population tournament = new Population(tournamentSize, problem,  false);
-		
-		// For each place in the tournament get a random individual 
-		for (int i = 0; i < tournamentSize; i++) {
-			//we select a random individual from previous population
-			int randomIndividual = rand.nextInt(pop.size());
-			//and we put it in the tournament
-			tournament.saveIndividual(i, pop.getIndividual(randomIndividual));
-		}
-		// Get the fittest
-		Individual fittest = tournament.getFittest();
-		return fittest;
-	}*/
-	
 	
 	
 	private static Individual randomIndividual(Population pop){
