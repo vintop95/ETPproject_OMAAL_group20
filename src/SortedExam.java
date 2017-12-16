@@ -22,6 +22,12 @@ public class SortedExam{
 	}
 	
 	@Override
+	public String toString() {
+		Integer idd = (Integer) id;
+		return idd.toString();
+	}
+	
+	@Override
 	public boolean equals(Object other){
 		SortedExam se = (SortedExam) other;
 		return (se.id == this.id);

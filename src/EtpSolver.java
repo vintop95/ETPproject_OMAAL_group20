@@ -30,7 +30,7 @@ public class EtpSolver {
 			myPop = GeneticAlgorithm.evolvePopulation(myPop);
 			double newCost= p.getBestInd().getCost();
 			if(newCost<currentCost){
-				System.out.println("best solution now: " + p.getBestInd().getCost());
+				System.out.println("best solution now: " + p.getBestInd().getCost() + " in " + timeElapsed + " s");
 			}
 			timeElapsed = updateTimeElapsed(startTime);
 			

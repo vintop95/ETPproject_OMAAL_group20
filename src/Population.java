@@ -50,9 +50,13 @@ class Population {
 			//this loop iterates until a feasible solution is found, but it also should stop
 			//if we already overcame the minimum threshold of generated Individuals 
 			//and we exceeded the time limit
+			int countReinit = 0;
+			
 			boolean feasibleSolFound = false;
 			do{
 				newInd.reinitialize();
+				countReinit++;
+				
 				feasibleSolFound = newInd.generateFeasibleIndividual();
 				
 				timeElapsed = EtpSolver.updateTimeElapsed(startTime);
@@ -64,6 +68,8 @@ class Population {
 			//we should save it in the population
 			if(feasibleSolFound){
 				saveIndividual(i, newInd);
+				System.out.println("reinitialized " + countReinit + " times");
+				System.out.println(i + ": " + getIndividual(i).getCost() + " in " + timeElapsed + "s") ;
 				i++;
 			}
 			

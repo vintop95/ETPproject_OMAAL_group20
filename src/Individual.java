@@ -156,14 +156,14 @@ class Individual {
 	//this method could surrend and return false when it can't find a feasible solution
 	public boolean generateFeasibleIndividual(){
 		
-		//needed as a second auxiliary queue for collecting exams
-		PriorityQueue<SortedExam> deschedulatedExamToSchedule =
-		new PriorityQueue<SortedExam>(11, new ConflictComparator());
+		//needed as a second auxiliary list for collecting exams
+		
+		List<SortedExam> deschedulatedExamToSchedule = new ArrayList<SortedExam>();
 		
 		while(! examToSchedule.isEmpty() ){			
 			//pick the most conflicting exam
 			SortedExam e1 = examToSchedule.poll();
-			
+
 			HashSet<Integer> availableTimeslot = generateE1TimeslotSet(e1, p.getTimeslotSet());	
 			
 			//if there is at least one feasible timeslot to place exam e1
@@ -179,15 +179,18 @@ class Individual {
 		
 		int nOfIteration = 0;
 		//the maximum number of iterations we are willing to do
-		//in order to not remain stuck in this research
-		int nOfIterationMax = p.getExams()*2;
+		//in order to not remain stuck in this research - 300
+		int nOfIterationMax = 300;
 
 		//we iterate this loop until there are no more exams to schedule
 		//or if we exceeded the given number of maximum iterations
 		while(! deschedulatedExamToSchedule.isEmpty() && nOfIteration < nOfIterationMax){
 			nOfIteration++;
-			//pick the most conflicting exam
-			SortedExam e1 = deschedulatedExamToSchedule.poll();
+				
+			//pick a random exam from the list
+			Collections.shuffle(deschedulatedExamToSchedule);
+			SortedExam e1 = deschedulatedExamToSchedule.iterator().next();
+			deschedulatedExamToSchedule.remove(e1);
 			
 			//this vector is used to store for each timeslot
 			//how many exams in conflict with e1 are there
@@ -219,8 +222,8 @@ class Individual {
 					optimalTimeslots.add(t);
 				}
 			}
-			selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
 			
+			selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
 			
 			//we deschedulate the exams in conflict with e1 that are scheduled
 			//in selectedTimeslot, if there are any
