@@ -1,69 +1,104 @@
 class Population {
-	//A POPULATION OF populationSize IS COMPOSED BY individuals (POSSIBLE SOLUTIONS)
+	//A POPULATION OF populationSize IS COMPOSED BY individuals (FEASIBLE SOLUTIONS)
 	private int populationSize;
 	private Individual[] individuals;
+	private Individual fittest; //We keep the best individual of the population in this variable
 	
 	//CONSTRUCTOR
-	//initialize: if true, population is filled with random solutions
-	//				otherwise it remains empty
+	//boolean initialize: if true, population is filled with random solutions
+	//					  otherwise it remains empty
 	public Population(int size, Problem p, boolean initialize) {
+		//this is the fraction of total computational time we want to dedicate,
+		//in worst cases, to find the first generation
+		double timeLimitRate = 0.33;
+		
+		//this is the minimum number of solutions we need in our population
+		int minSolutionToGenerate = 1;
+				
 		populationSize = size;
 		individuals = new Individual[populationSize];
 		
-		if(! initialize)	
-			return;
 		
+		if(! initialize )	
+			return;
 		
 		long startTime= System.currentTimeMillis();
 		
-		
-		
-		System.out.println("Generating first population: ");
 		double timeElapsed = EtpSolver.updateTimeElapsed(startTime);
+		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
+
+		//this will save the current population size
+		int i=0;
 		
-		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit / 2);
+		//if there is already a feasible solution in the .sol file
+		//we put it in our new population	
+		Individual firstInd = p.readOldFile();
+		if (firstInd != null && firstInd.isLegal() ){
+			saveIndividual(i, firstInd);
+			System.out.println(i + ": " + getIndividual(i).getCost());
+			i++;
+		}
+				
+
+		//we should generate maxPop exams, but in a time limit 
+		//and the population must have at least 'minSolutionToGenerate' individuals
 		
-		
-		int i;
-		for( i=0; i<size() && timeLimitCondition; i++) {
+		while( i<size() && (i< minSolutionToGenerate || timeLimitCondition ) ) {
+			
 			Individual newInd = new Individual(p);
+			
+			//this loop iterates until a feasible solution is found, but it also should stop
+			//if we already overcame the minimum threshold of generated Individuals 
+			//and we exceeded the time limit
+			int countReinit = 0;
 			
 			boolean feasibleSolFound = false;
 			do{
 				newInd.reinitialize();
+				countReinit++;
+				
 				feasibleSolFound = newInd.generateFeasibleIndividual();
 				
 				timeElapsed = EtpSolver.updateTimeElapsed(startTime);
-				timeLimitCondition = timeElapsed < (EtpSolver.timeLimit / 2);
-			}while(! feasibleSolFound && (i==0 || timeLimitCondition ));
-			//do that while a feasible solution is not found, but also
-			//if this is not the first solution you should stop after a timeLimit
+				timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
+			}while(! feasibleSolFound && (i< minSolutionToGenerate || timeLimitCondition ));
 			
-			saveIndividual(i, newInd);
-			System.out.println(i + ": " + getIndividual(i).getCost() + getIndividual(i).isLegal());
+			
+			//if we exited the loop with a feasible solution
+			//we should save it in the population
+			if(feasibleSolFound){
+				saveIndividual(i, newInd);
+				System.out.println("reinitialized " + countReinit + " times");
+				System.out.println(i + ": " + getIndividual(i).getCost() + " in " + timeElapsed + "s") ;
+				i++;
+			}
+			
 			
 			timeElapsed = EtpSolver.updateTimeElapsed(startTime);
 		}
 		
 		//save the effective size of the population
 		populationSize = i;
+		
+		//update the best individual found until now
+		p.updateBestInd( getFittest() );
 	}
 	
-	//find the solution with the maximum fit
+	//return the solution with the maximum fit
 	public Individual getFittest() {
-		Individual fittest = individuals[0];
-		// Loop through individuals to find fittest
-		for (int i = 1; i < size(); i++) {
-			if (fittest.getFitness() <= getIndividual(i).getFitness()) {
-				fittest = getIndividual(i);
-			}
-		}
 		return fittest;
 	}
 		
 	
-	//TO ACCESS TO AN INDIVIDUAL
+	//to save an individual 'indiv' in the population in position 'index'
 	public void saveIndividual(int index, Individual indiv) {
+		double newCost = indiv.getCost();
+		
+		//we update the fittest individual of the population
+		if(fittest == null || (fittest != null && newCost < fittest.getCost()) ){
+			fittest = indiv;
+		}
+		
 		individuals[index] = indiv;
 	}
 	public Individual getIndividual(int index) {
