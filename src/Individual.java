@@ -259,6 +259,7 @@ class Individual {
 		
 		return isLegal();
 	}
+	
 	//this method is required to reset a solution if we weren't 
 	//able to find a feasible solution
 	public void reinitialize(){
@@ -283,8 +284,10 @@ class Individual {
 		return examToScheduleCostWeight;
 	}
 	
+	
 	//THIS METHOD MOVES THE SOLUTION INTO THE BEST OF THE NEIGHBORHOOD
-	public void localSearch(){
+	//BY MOVING EXAMS IN OTHER TIMESLOTS
+	public void localSearchMoveExams(){
 		//main idea: if you don't find a better timeslot, stay in the same
 		
 		
@@ -307,7 +310,7 @@ class Individual {
 				double bestVariation = 0;
 				
 				for(Integer timeslot: e1TimeslotSet){
-					double var = this.costVariation(e1.getId(), timeslot);
+					double var = this.costVariationMoveExam(e1.getId(), timeslot);
 					if(var<bestVariation){
 						bestVariation = var;
 						bestTimeslot = timeslot;
@@ -323,10 +326,48 @@ class Individual {
 		
 		
 		//System.out.println("localSearch - newVal: " + (getCost()));
-
 	}
 	
-	//it returns the set of timeslots in which exam e1 can actually be schedule
+	
+	//THIS METHOD MOVES THE SOLUTION INTO THE BEST OF THE NEIGHBORHOOD
+	//BY SWAPPING TIMESLOTS
+	public void localSearchSwapTimeslots(){
+		int timeslot1 = -1;
+		int timeslot2 = -1;
+		double bestVariation = 0;
+		//assicurarsi che i campi costIsCalculated e legalityIsCalculated vengano 
+		//reimpostati a false, se da problemi potrebbe essere per quello
+		for(int t1=0; t1< p.getTimeslots() - 1; t1++){
+			for(int t2=t1+1; t2<p.getTimeslots(); t2++){
+				//utilizziamo una funzione che ritorna la variazione della funzione obiettivo 
+				//se dovessimo scambiare gli esami di t1 con quelli di t2
+				double currentVariation = costVariationSwapTimeslots(t1, t2);
+				//aggiorniamo i parametri per effettuare il migliore spostamento
+				if(currentVariation < bestVariation){
+					timeslot1=t1;
+					timeslot2=t2;
+					bestVariation = currentVariation;
+				}
+			}
+		}
+		//solo se effettivamente la funz. ob. migliora effettuiamo lo scambio
+		if(bestVariation < 0 ){
+			for(int e= 0; e<p.getExams(); e++){
+				if(getGene(e) == timeslot1){
+					setGene(e, timeslot2);
+				}
+				else if(getGene(e) == timeslot2){
+					setGene(e, timeslot1);
+				}
+			}
+		}
+		//se non esiste uno scambio che porta benefici viene newInd rimarrà identico a this 
+	}
+	
+	
+	//++++AUXILIARY FUNCTIONS
+	
+	//it returns the set of timeslots in which exam e1 can actually be scheduled
 	private HashSet<Integer> generateE1TimeslotSet(SortedExam e1, HashSet<Integer> timeslotSet){
 		//I clone the complete timeslot set, in order to remove infeasible timeslots from there
 		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
@@ -348,8 +389,9 @@ class Individual {
 		return e1TimeslotSet;
 	}
 	
+	
 	//Calculates the advantage of moving an exam 'examToMove' in the 'newTimeSlot'
-	double costVariation(int examToMove, int newTimeslot) {
+	double costVariationMoveExam(int examToMove, int newTimeslot) {
 		double costVar=0;
 		//we create a new temporary solution
 		//in which the examToMove is moved to the newTimeslot
@@ -359,4 +401,49 @@ class Individual {
 		costVar = (costWeightNew - costWeightOld);
 		return costVar;
 	}
+	
+	
+	//una funzione che ritorna la variazione della funz. ob. che si avrebbe
+	//se si scambiasse il contenuto del timeslot t1 con quello del timeslot t2
+	public double costVariationSwapTimeslots(int t1, int t2){
+		
+		double variation = 0;
+		HashSet<Integer> involvedExams = new HashSet<Integer>();
+		
+		for(int e=0; e<p.getExams(); e++){
+			if(getGene(e) == t1 || getGene(e) == t2){
+				//riempiamo le due strutture parallelamente
+				involvedExams.add(e);
+			}
+		}
+		
+		Iterator<Integer> it = involvedExams.iterator();
+		//per ogni esame da muovere e1 calcoliamo la variazione nella funzione obiettivo
+		while( it.hasNext() ){
+			
+			int e1 = it.next();
+	
+			//scorriamo tutti gli esami e2 in conflitto con e1
+			for(int j=0; j<p.getSortedExam(e1).conflictingExams.size(); j++){
+				
+				int e2= p.getSortedExam(e1).conflictingExams.get(j);
+				//solo se l'esame in conflitto non fa parte di quelli dell'altro timeslot
+				//calcoliamo la variazione
+				if(! involvedExams.contains(e2)){
+					int currentTimeslot = getGene(e1);
+					int otherTimeslot = ((currentTimeslot == t1) ? t2 : t1);
+					
+					//penalità attuale
+					double currentPenalty = FitnessFunct.getPenalty(e1, currentTimeslot, e2, getGene(e2));
+					//penalità se effettuiamo lo scambio
+					double newPenalty = FitnessFunct.getPenalty(e1, otherTimeslot, e2, getGene(e2));
+		
+					variation += (newPenalty - currentPenalty);
+				}
+			}
+			
+		}
+		return variation;
+	}
+	
 }

@@ -41,10 +41,6 @@ class GeneticAlgorithm {
 	private static PriorityQueue<Couple> individualsSortedByCost = new PriorityQueue<Couple>();
 	
 
-	public static void setProblem(Problem p) {
-		GeneticAlgorithm.problem = p;
-		FitnessFunct.setProblem(p);
-	}
 
 	//This method returns a new population evolved from 'pop'
 	public static Population evolvePopulation(Population pop) {		
@@ -93,7 +89,10 @@ class GeneticAlgorithm {
 				newInd = deschedulingOperator(ind1, deschedulationRate);
 			}else{
 				//in this case we try to optimize an existing individual
-				newInd = localSearchOperator(ind1);
+				if( rand.nextDouble() < 0.5 )
+					newInd = localSearchMoveExamsOperator(ind1);
+				else
+					newInd = localSearchSwapTimeslotsOperator(ind1);
 			}
 			
 			newPopulation.saveIndividual(i, newInd);
@@ -116,6 +115,8 @@ class GeneticAlgorithm {
 	}
 	
 	
+	
+	//++++++OPERATORS
 
 	//used to mutate feasible sol to another feasible sol
 	private static Individual deschedulingOperator(Individual indiv, double deschedulationRate){
@@ -137,11 +138,28 @@ class GeneticAlgorithm {
 		return newInd;
 	}
 	
+	//LOCAL SEARCH OPERATORS
 	//used to get the best solution in the neighborhood
-	private static Individual localSearchOperator(Individual indiv){
-		Individual newInd = new Individual(indiv);
-		newInd.localSearch();
+	
+	//BY MOVING EXAMS IN OTHER TIMESLOTS WITH NO CONFLICTING EXAMS
+	private static Individual localSearchMoveExamsOperator(Individual old){
+		Individual newInd = new Individual(old);
+		newInd.localSearchMoveExams();
 		return newInd;
+	}
+	
+	//by swapping timeslots
+	private static Individual localSearchSwapTimeslotsOperator(Individual old){
+		Individual newInd = new Individual(old);
+		newInd.localSearchSwapTimeslots();
+		return newInd;
+	}
+	
+	//++++++AUXILIARY
+	
+	public static void setProblem(Problem p) {
+		GeneticAlgorithm.problem = p;
+		FitnessFunct.setProblem(p);
 	}
 	
 	//to get a random individual
@@ -149,5 +167,6 @@ class GeneticAlgorithm {
 		int indexRandomInd = rand.nextInt(pop.size());
 		return pop.getIndividual(indexRandomInd);
 	}
+	
 	
 }

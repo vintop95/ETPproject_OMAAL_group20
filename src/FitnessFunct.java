@@ -65,4 +65,16 @@ class FitnessFunct {
 	public static void setProblem(Problem p) {
 		FitnessFunct.p = p;
 	}
+	
+	//una funzione che ritorna la penalità dovuta ad avere exam1 in timeslot1 
+	//ed exam2 in timeslot2
+	//si da per scontato che exam1 e exam2 saranno esami in conflitto
+	protected static double getPenalty(int exam1, int timeslot1, int exam2, int timeslot2){
+		int d = Math.abs(timeslot1 - timeslot2);
+		double penalty = 0;
+		if(d <=5){
+			penalty = w[d]*p.getConflicts(exam1, exam2);
+		}
+		return penalty;
+	}
 }
