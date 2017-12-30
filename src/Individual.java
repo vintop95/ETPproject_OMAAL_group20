@@ -1,7 +1,31 @@
 import java.util.*;
 //todo: comparatore di soluzioni
 
-
+class CoupleOfInt{
+	public int a;
+	public int b;
+	
+	public CoupleOfInt(int a, int b){
+		this.a = a;
+		this.b = b;
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		if (other == null) return false;
+	    if (other == this) return true;
+	    if (!(other instanceof CoupleOfInt))return false;
+		CoupleOfInt c2 = (CoupleOfInt)other;
+		return (c2.a == a && c2.b == b);
+	}
+	
+	@Override
+	public String toString() {
+		Integer aa = (Integer) a;
+		Integer bb = (Integer) b;
+		return "(" + aa.toString() + ", " + bb.toString() + ")";
+	}
+}
 
 class Individual {
 	//EXPLANATION OF THE CLASS
@@ -154,6 +178,7 @@ class Individual {
 	}
 	
 	//this method could surrend and return false when it can't find a feasible solution
+	//also we use a tabulist
 	public boolean generateFeasibleIndividual(){
 		
 		//needed as a second auxiliary list for collecting exams
@@ -179,8 +204,14 @@ class Individual {
 		
 		int nOfIteration = 0;
 		//the maximum number of iterations we are willing to do
-		//in order to not remain stuck in this research - 300
-		int nOfIterationMax = 300;
+		//in order to not remain stuck in this research - 3000
+        int nOfIterationMax = p.getExams() * 5;
+
+		//TABU LIST: we need it to avoid to repeat same moves
+		//CoupleOfInt: (exam, oldTimeslotNotToGo)
+		Queue<CoupleOfInt> tabuList = new LinkedList<CoupleOfInt>();
+		//parameter to adjust - 20
+		int maxSizeTabuList = 20;//p.getTimeslots(); 
 
 		//we iterate this loop until there are no more exams to schedule
 		//or if we exceeded the given number of maximum iterations
@@ -194,48 +225,61 @@ class Individual {
 			
 			//this vector is used to store for each timeslot
 			//how many exams in conflict with e1 are there
-			int[] occurrency = new int[numOfAlleles];		
-			for(int e2 = 0; e2 < p.getExams(); e2++){
-				boolean e2IsInConflictWithE1 = p.areExamsInConflicts(e1.id, e2);
+			int[] occurrency = new int[numOfAlleles];
+			//we scan exams in conflict with e1
+			//to calculate the occurency vector
+			for(int i = 0; i < e1.conflictingExams.size(); i++){
+				int e2 = e1.conflictingExams.get(i);
 				boolean e2IsAlreadyScheduled = (getGene(e2) != -1);
-				
-				if(e2IsInConflictWithE1 && e2IsAlreadyScheduled){
+				if(e2IsAlreadyScheduled){
 					//update the number of exams in conflict in that timeslot
 					occurrency[ getGene(e2) ] ++;					
 				}
 			}
 			
 			
-			//choose the timeslot with the minimum number
-			//of exams in conflict for e1
+			//choose the timeslot with the minimum number of exams in conflict for e1
+			//to get the minimum number possible of exams in conflict in a timeslot
 			int selectedTimeslot = 0;
 			for(int t=0; t<numOfAlleles; t++){
+				boolean isTabuMove = tabuList.contains( new CoupleOfInt(e1.getId(), t) );
 				
-				if(occurrency[t]< occurrency[selectedTimeslot])
+				if( !isTabuMove && occurrency[t]< occurrency[selectedTimeslot])
 					selectedTimeslot = t;
 			}
 						
 			//we get a random optimal timeslot
 			Vector<Integer> optimalTimeslots = new Vector<Integer>();
 			for(int t=0; t<numOfAlleles; t++){
-				if(occurrency[t] == occurrency[selectedTimeslot]){
+				boolean isTabuMove = tabuList.contains( new CoupleOfInt(e1.getId(), t) );
+				
+				if( !isTabuMove && occurrency[t] == occurrency[selectedTimeslot]){
 					optimalTimeslots.add(t);
 				}
 			}
+			if( optimalTimeslots.size() > 0 )
+				selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
+			else
+				selectedTimeslot = -1;
 			
-			selectedTimeslot = optimalTimeslots.get(rand.nextInt(optimalTimeslots.size()));
+			
 			
 			//we deschedulate the exams in conflict with e1 that are scheduled
 			//in selectedTimeslot, if there are any
-			if(occurrency[selectedTimeslot] > 0){
+			if(selectedTimeslot >= 0 && occurrency[selectedTimeslot] > 0){
 				for(int i = 0; i < e1.conflictingExams.size(); i++){
-					
 					//id of conflicting exams
 					int e2 = e1.conflictingExams.get(i);
 					
 					boolean e2IsInTheSelectedTimeslot = (getGene(e2) == selectedTimeslot);
 					
 					if (e2IsInTheSelectedTimeslot){
+						
+						//implementing FIFO for adding a move in the tabulist
+						if(tabuList.size() == maxSizeTabuList)
+							tabuList.remove();
+						tabuList.add( new CoupleOfInt(e2, getGene(e2)) );
+	
 						setGene(e2, -1);
 						//inseriamo gli esami deschedulati nella stessa lista 
 						deschedulatedExamToSchedule.add(p.getSortedExam(e2));

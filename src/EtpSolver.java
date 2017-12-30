@@ -46,7 +46,8 @@ public class EtpSolver {
 	//this method returns the seconds elapsed from the start
 	public static double updateTimeElapsed(long startTime){
 		long currentTime = System.currentTimeMillis();
-		double elapsedTime = (currentTime - startTime)/1000;
+		double diff = (double)(currentTime - startTime);
+		double elapsedTime = diff/1000;
 		return elapsedTime;
 	}
 
