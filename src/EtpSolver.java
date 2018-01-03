@@ -2,6 +2,7 @@
 
 public class EtpSolver {
 	
+	//used by other classes
 	static public double timeLimit;
 	
 	public static void main(String[] args) {

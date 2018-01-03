@@ -205,7 +205,7 @@ class Individual {
 		int nOfIteration = 0;
 		//the maximum number of iterations we are willing to do
 		//in order to not remain stuck in this research - 3000
-        int nOfIterationMax = p.getExams() * 5;
+        int nOfIterationMax = (int) (p.getExams() * 4);
 
 		//TABU LIST: we need it to avoid to repeat same moves
 		//CoupleOfInt: (exam, oldTimeslotNotToGo)
