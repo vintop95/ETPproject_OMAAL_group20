@@ -22,7 +22,7 @@ class Population {
 		if(! initialize )	
 			return;
 		
-		long startTime= System.currentTimeMillis();
+		long startTime = System.currentTimeMillis();
 		
 		double timeElapsed = EtpSolver.updateTimeElapsed(startTime);
 		boolean timeLimitCondition = timeElapsed < (EtpSolver.timeLimit * timeLimitRate);
@@ -32,7 +32,7 @@ class Population {
 		
 		//if there is already a feasible solution in the .sol file
 		//we put it in our new population	
-		Individual firstInd = p.readOldFile();
+		Individual firstInd = p.readOldIndividual();
 		if (firstInd != null && firstInd.isLegal() ){
 			saveIndividual(i, firstInd);
 			System.out.println(i + ": " + getIndividual(i).getCost());

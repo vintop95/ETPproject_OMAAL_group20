@@ -13,22 +13,22 @@ public class EtpSolver {
 			System.exit(-1);
 		}
 		
-		final int popSize = 15;
+		final int popMaxSize = 15;
 		final String instanceName = args[0];
 		timeLimit = Integer.parseInt(args[2]);
 		//we start counting time
-		long startTime= System.currentTimeMillis();
+		long startTime = System.currentTimeMillis();
 		
 		
 		//WE DEFINE A PROBLEM AND WE INSERT IT IN THE ALGORITHM (STATIC CLASS)
 		Problem p = new Problem(instanceName);
-		GeneticAlgorithm.setProblem(p);
-		Population myPop = new Population(popSize, p, true);
+		OptimizationAlgorithm.setProblem(p);
+		Population myPop = new Population(popMaxSize, p, true);
 		
 		double timeElapsed = updateTimeElapsed(startTime);
 		while(timeElapsed < timeLimit){
 			double currentCost = p.getBestInd().getCost();
-			myPop = GeneticAlgorithm.evolvePopulation(myPop);
+			myPop = OptimizationAlgorithm.evolvePopulation(myPop);
 			double newCost= p.getBestInd().getCost();
 			if(newCost<currentCost){
 				System.out.println("best solution now: " + p.getBestInd().getCost() + " in " + timeElapsed + " s");
@@ -40,7 +40,7 @@ public class EtpSolver {
 		System.out.println(p.getBestInd());
 		
 		//print the best solution in the file 
-		p.checkOutputFile(p.getBestInd());
+		p.outputFile(p.getBestInd());
 	
 	}
 	

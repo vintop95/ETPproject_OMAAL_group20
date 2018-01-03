@@ -1,10 +1,10 @@
 import java.util.*;
 
 //we use this structure to sort individuals by their cost
-class Couple implements Comparable<Couple>{
+class CostAndIndividual implements Comparable<CostAndIndividual>{
 	private double key; //cost
 	private Individual val; //individual
-	public Couple(double k, Individual v){
+	public CostAndIndividual(double k, Individual v){
 		key = k;
 		val = v;
 	}
@@ -12,7 +12,6 @@ class Couple implements Comparable<Couple>{
 	public double getKey(){
 		return key;
 	}
-	
 	public Individual getVal(){
 		return val;
 	}
@@ -20,7 +19,7 @@ class Couple implements Comparable<Couple>{
 	//this method is used to define an ordering relationship
 	//between objects of class Couple
 	@Override
-	public int compareTo(Couple c2){
+	public int compareTo(CostAndIndividual c2){
 		if (getKey() < c2.getKey())
 			return -1;
 		else if (getKey() > c2.getKey())
@@ -30,7 +29,7 @@ class Couple implements Comparable<Couple>{
 	}
 }
 
-class GeneticAlgorithm {
+public class OptimizationAlgorithm {
 	private static final Random rand = new Random();
 	
 	private static final double elitismRate = 0.2;
@@ -38,7 +37,7 @@ class GeneticAlgorithm {
 	private static int nonImprovingIterationsCount = 0;
 	
 	private static Problem problem;
-	private static PriorityQueue<Couple> individualsSortedByCost = new PriorityQueue<Couple>();
+	private static PriorityQueue<CostAndIndividual> individualsSortedByCost = new PriorityQueue<CostAndIndividual>();
 	
 
 
@@ -47,7 +46,7 @@ class GeneticAlgorithm {
 		
 		//sort individual by their cost to choose the elite ones
 		for(int i=0; i<pop.size(); i++){
-			individualsSortedByCost.add(new Couple(pop.getIndividual(i).getCost(), pop.getIndividual(i)));
+			individualsSortedByCost.add(new CostAndIndividual(pop.getIndividual(i).getCost(), pop.getIndividual(i)));
 		}
 		
 		//create a new uninitialized population
@@ -85,8 +84,8 @@ class GeneticAlgorithm {
 			//we extract a random number between 0 and 1
 			if( rand.nextDouble() < prob ){
 				//in this case we mutate an existing individual
-				double deschedulationRate = rand.nextDouble() * maxDeschedulationRate;
-				newInd = deschedulingOperator(ind1, deschedulationRate);
+				double deschedulingRate = rand.nextDouble() * maxDeschedulationRate;
+				newInd = deschedulingOperator(ind1, deschedulingRate);
 			}else{
 				//in this case we try to optimize an existing individual
 				if( rand.nextDouble() < 0.5 )
@@ -126,8 +125,8 @@ class GeneticAlgorithm {
 
 		//it tries to generate a solution for 'maxIterations' iterations
 		boolean feasibleSolFound = false;
-		int maxIterations = 1000;
-		for(int i=0; i <maxIterations && ! feasibleSolFound; i++){
+		int maxIterationsForDescheduling = 1000;
+		for(int i=0; i <maxIterationsForDescheduling && ! feasibleSolFound; i++){
 			feasibleSolFound = newInd.generateFeasibleIndividual();
 		}
 
@@ -158,7 +157,7 @@ class GeneticAlgorithm {
 	//++++++AUXILIARY
 	
 	public static void setProblem(Problem p) {
-		GeneticAlgorithm.problem = p;
+		problem = p;
 		FitnessFunct.setProblem(p);
 	}
 	

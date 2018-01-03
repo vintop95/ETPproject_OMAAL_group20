@@ -27,18 +27,6 @@ public class Problem {
 	//we save here the best current individual found for the instance
 	private Individual bestInd;
 	
-	public Individual getBestInd(){
-		return bestInd;
-	}
-	
-	
-	public void updateBestInd( Individual newInd ){
-		if( bestInd == null || ( bestInd != null && newInd.getCost() < bestInd.getCost() )){
-			bestInd = newInd;
-		}
-	}
-	
-	
 	public Problem(String instanceName) {
 		if(instanceName != null) {
 			this.instanceName = instanceName;
@@ -48,7 +36,16 @@ public class Problem {
 			generateSortedExams();
 			generateSets();
 		}
-		
+	}
+	
+	public Individual getBestInd(){
+		return bestInd;
+	}
+	
+	public void updateBestInd( Individual newInd ){
+		if( bestInd == null || ( bestInd != null && newInd.getCost() < bestInd.getCost() )){
+			bestInd = newInd;
+		}
 	}
 	
 	//it returns the number of timeslots for the instance
@@ -157,6 +154,7 @@ public class Problem {
 			return true;
 		return false;
 	}
+	
 	public int getNumOfExams() {return N_EXAMS;}
 	public int getNumOfStudents() {return N_STUDENTS;}
 	public int getNumOfTimeslots() {return N_TIMESLOTS;}
@@ -204,9 +202,7 @@ public class Problem {
 	}
 	
 	
-	
-	
-	public Individual readOldFile(){
+	public Individual readOldIndividual(){
 		String fileName=instanceName + "_OMAAL_group20.sol";
 		File file=new File(fileName);
 		
@@ -234,13 +230,13 @@ public class Problem {
 		return null;
 	}
 	//this method generates the output file. It calls generateOutput
-	public void checkOutputFile(Individual fittest) {
+	public void outputFile(Individual fittest) {
 		String fileName=instanceName + "_OMAAL_group20.sol";
 		File file=new File(fileName);
 		
 
 		if(file.exists()) {
-			Individual oldfittest=readOldFile();
+			Individual oldfittest = readOldIndividual();
 
 			if(oldfittest.getCost()>fittest.getCost()) {
 				//file.delete();
@@ -262,8 +258,8 @@ public class Problem {
 	}
 	
 	//this method writes the output on an empty file .sol
-	//it's called by 'checkOutputFile'
-	public void generateOutput(Individual fittest ) { 
+	//it's called by 'outputFile'
+	private void generateOutput(Individual fittest ) { 
 		
 		String fileName = instanceName + "_OMAAL_group20.sol";
 		
