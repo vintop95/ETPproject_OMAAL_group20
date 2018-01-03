@@ -7,47 +7,47 @@ class FitnessFunct {
 	//IT CALCULATES THE OBJECTIVE FUNCTION VALUE OF AN INDIVIDUAL
 	protected static double getCost(Individual timetable) {
 		double cost= 0.0;
-		int numExams= p.getExams();
+		int numExams= p.getNumOfExams();
 		
 		for(int exam1=0; exam1<numExams; exam1++) {
-			int period1 = timetable.getGene(exam1);
+			int period1 = timetable.getExam(exam1);
 			for(int exam2=exam1+1; exam2<numExams; exam2++) {
-				int period2= timetable.getGene(exam2);
+				int period2= timetable.getExam(exam2);
 				int d = Math.abs(period1 - period2);
 				if(d <= 5)
 					cost += w[d]*p.getConflicts(exam1, exam2);
 			}
 		}
-		return cost/p.getStudents();
+		return cost/p.getNumOfStudents();
 	}
 	
 	//it calculates the costWeight of the exam1
 	//i.e. the impact of exam1 on the total objective function
 	protected static double getCostWeight(Individual timetable, int exam1) {
 		double costWeight= 0;
-		int numExams= p.getExams();
-		int period1= timetable.getGene(exam1);
+		int numExams= p.getNumOfExams();
+		int period1= timetable.getExam(exam1);
 		
 		for(int exam2=0; exam2<numExams; exam2++) {
 			if(exam1!=exam2) {
-				int period2=timetable.getGene(exam2);
+				int period2=timetable.getExam(exam2);
 				int d = Math.abs(period1 - period2);
 				if(d <= 5)
 					costWeight += w[d]*p.getConflicts(exam1, exam2);
 			}
 		}
-		return (costWeight/p.getStudents()/2);
+		return (costWeight/p.getNumOfStudents()/2);
 		// divide by two because we consider twice a conflict
 	}
 	
 	//IT CHECKS IF THE GIVEN SOLUTION IS LEGAL
-	protected static boolean isLegal(Individual timetable) {
-		int numExams= p.getExams();
+	protected static boolean isLegal(Individual ind) {
+		int numExams= p.getNumOfExams();
 		
 		for(int exam1=0; exam1<numExams; exam1++) {
-			int period1 = timetable.getGene(exam1);
+			int period1 = ind.getExam(exam1);
 			for(int exam2=exam1+1; exam2<numExams; exam2++) {
-				int period2 = timetable.getGene(exam2);
+				int period2 = ind.getExam(exam2);
 				if(period1 == period2) {
 					if(p.areExamsInConflicts(exam1, exam2))
 						return false; 

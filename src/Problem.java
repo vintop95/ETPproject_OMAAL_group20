@@ -157,9 +157,9 @@ public class Problem {
 			return true;
 		return false;
 	}
-	public int getExams() {return N_EXAMS;}
-	public int getStudents() {return N_STUDENTS;}
-	public int getTimeslots() {return N_TIMESLOTS;}
+	public int getNumOfExams() {return N_EXAMS;}
+	public int getNumOfStudents() {return N_STUDENTS;}
+	public int getNumOfTimeslots() {return N_TIMESLOTS;}
 	public PriorityQueue<SortedExam> getSortedExams() {return sortedExams;}
 	public SortedExam getSortedExam(int i) {return (SortedExam) arraySortedExams[i];}
 	public HashSet<Integer> getTimeslotSet() {return timeslotSet;}
@@ -218,9 +218,9 @@ public class Problem {
 				
 				
 				 while(in.hasNextInt()) {
-				    int i=in.nextInt() - 1;
-				    int allele = in.nextInt() - 1;
-				    old.setGene(i, allele);
+				    int e = in.nextInt() - 1;
+				    int t = in.nextInt() - 1;
+				    old.setExam(e, t);
 				 }
 				in.close();
 	
@@ -271,7 +271,7 @@ public class Problem {
 			FileWriter fw = new FileWriter(fileName);
 			BufferedWriter bw = new BufferedWriter(fw);
 			for(int i=0; i<N_EXAMS; i++) {
-				bw.write((i+1) + "  " + (fittest.getGene(i)+1));
+				bw.write((i+1) + "  " + (fittest.getExam(i)+1));
 				if(i < N_EXAMS-1)
 					bw.write("\r\n");
 			}
