@@ -4,9 +4,9 @@ import java.util.*;
 class CostAndIndividual implements Comparable<CostAndIndividual>{
 	private double key; //cost
 	private Individual val; //individual
-	public CostAndIndividual(double k, Individual v){
-		key = k;
-		val = v;
+	public CostAndIndividual(double cost, Individual indiv){
+		key = cost;
+		val = indiv;
 	}
 	
 	public double getKey(){
@@ -40,7 +40,6 @@ public class OptimizationAlgorithm {
 	private static PriorityQueue<CostAndIndividual> individualsSortedByCost = new PriorityQueue<CostAndIndividual>();
 	
 
-
 	//This method returns a new population evolved from 'pop'
 	public static Population evolvePopulation(Population pop) {		
 		
@@ -50,7 +49,7 @@ public class OptimizationAlgorithm {
 		}
 		
 		//create a new uninitialized population
-		Population newPopulation = new Population(pop.size(), problem, false);
+		Population newPopulation = new Population(pop.size(), problem);
 		
 		//calculate how many elite individuals should be saved
 		int elitePopSize = (int) (pop.size() * elitismRate);

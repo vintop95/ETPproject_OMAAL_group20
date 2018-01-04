@@ -37,7 +37,7 @@ class Individual {
 	private Random rand = new Random();
 	//we represent an individual as a vector which has the size of N_EXAMS
 	//in each cell we will write the timeslot in which the exam is scheduled
-	private Vector<Integer> exams;
+	private Vector<Integer> timeslotOfExam;
 	//the problem that the Individual refers
 	private Problem p;
 		
@@ -58,9 +58,9 @@ class Individual {
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 		
 		//set all timeslots to an undefined value
-		exams = new Vector<Integer>();
+		timeslotOfExam = new Vector<Integer>();
 		for(int i=0; i<p.getNumOfExams(); i++){
-			exams.add(-1);
+			timeslotOfExam.add(-1);
 		}
 	}
 	
@@ -68,7 +68,7 @@ class Individual {
 		p = ind.p;	
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
 		
-		exams = new Vector<Integer>(ind.exams);
+		timeslotOfExam = new Vector<Integer>(ind.timeslotOfExam);
 	}
 	//END CONSTRUCTORS
 	
@@ -79,7 +79,7 @@ class Individual {
 	public String toString() {
 		String individual = "";
 		for(int i=0; i<size(); i++) {
-			individual += (i + 1) + " " + (getExam(i) + 1) + "\n";
+			individual += (i + 1) + " " + (getTimeslotOfExam(i) + 1) + "\n";
 		}
 		if(isLegal())
 			individual += "LEGAL \n";
@@ -93,22 +93,22 @@ class Individual {
 	//able to find a feasible solution
 	public void reinitialize(){
 		examToSchedule = new PriorityQueue<SortedExam>(p.getSortedExams());
-		exams = new Vector<Integer>();
+		timeslotOfExam = new Vector<Integer>();
 		for(int e=0; e<p.getNumOfExams(); e++){
-			exams.add(-1);
+			timeslotOfExam.add(-1);
 		}
 		legalityIsCalculated = false;
 		costIsCalculated = false;
 	}
 		
 	public int size() {
-		return exams.size();
+		return timeslotOfExam.size();
 	}
-	public int getExam(int e) {
-		return exams.get(e);
+	public int getTimeslotOfExam(int e) {
+		return timeslotOfExam.get(e);
 	}
-	public void setExam(int e, int t) {
-		exams.set(e, t);
+	public void setExamInTimeslot(int e, int t) {
+		timeslotOfExam.set(e, t);
 	}	
 	protected double getCost() {
 		if(! costIsCalculated ){
@@ -144,21 +144,21 @@ class Individual {
 		
 		//needed as a second auxiliary list for collecting exams
 		
-		List<SortedExam> deschedulatedExamToSchedule = new ArrayList<SortedExam>();
+		List<SortedExam> descheduledExamToSchedule = new ArrayList<SortedExam>();
 		
 		while(! examToSchedule.isEmpty() ){			
 			//pick the most conflicting exam
 			SortedExam e1 = examToSchedule.poll();
 
-			HashSet<Integer> availableTimeslot = generateAvailableTimeslotSet(e1, p.getTimeslotSet());	
+			HashSet<Integer> e1AvailableTimeslots = generateAvailableTimeslotSet(e1);	
 			
 			//if there is at least one feasible timeslot to place exam e1
-			if( ! availableTimeslot.isEmpty() ){
+			if( ! e1AvailableTimeslots.isEmpty() ){
 				//assign e1 in a random timeslot
-				assignExamInRandomTimeslot(e1.id, availableTimeslot);
+				assignExamInRandomTimeslot(e1.id, e1AvailableTimeslots);
 			} else {
 				//otherwise add e1 in the new queue to schedule it later
-				deschedulatedExamToSchedule.add(e1);
+				descheduledExamToSchedule.add(e1);
 			}
 		}
 		
@@ -177,13 +177,13 @@ class Individual {
 
 		//we iterate this loop until there are no more exams to schedule
 		//or if we exceeded the given number of maximum iterations
-		while(! deschedulatedExamToSchedule.isEmpty() && nOfIteration < maxIterationsGenerateFeasibleIndividual){
+		while(! descheduledExamToSchedule.isEmpty() && nOfIteration < maxIterationsGenerateFeasibleIndividual){
 			nOfIteration++;
 				
 			//pick a random exam from the list
-			Collections.shuffle(deschedulatedExamToSchedule);
-			SortedExam e1 = deschedulatedExamToSchedule.iterator().next();
-			deschedulatedExamToSchedule.remove(e1);
+			Collections.shuffle(descheduledExamToSchedule);
+			SortedExam e1 = descheduledExamToSchedule.iterator().next();
+			descheduledExamToSchedule.remove(e1);
 			
 			//this vector is used to store for each timeslot
 			//how many exams in conflict with e1 are there
@@ -192,10 +192,10 @@ class Individual {
 			//to calculate the occurency vector
 			for(int i = 0; i < e1.conflictingExams.size(); i++){
 				int e2 = e1.conflictingExams.get(i);
-				boolean e2IsAlreadyScheduled = (getExam(e2) != -1);
+				boolean e2IsAlreadyScheduled = (getTimeslotOfExam(e2) != -1);
 				if(e2IsAlreadyScheduled){
 					//update the number of exams in conflict in that timeslot
-					occurrency[ getExam(e2) ] ++;					
+					occurrency[ getTimeslotOfExam(e2) ] ++;					
 				}
 			}
 			
@@ -226,31 +226,31 @@ class Individual {
 			
 			
 			
-			//we deschedulate the exams in conflict with e1 that are scheduled
+			//we deschedule the exams in conflict with e1 that are scheduled
 			//in selectedTimeslot, if there are any
 			if(selectedTimeslot >= 0 && occurrency[selectedTimeslot] > 0){
 				for(int i = 0; i < e1.conflictingExams.size(); i++){
 					//id of conflicting exams
 					int e2 = e1.conflictingExams.get(i);
 					
-					boolean e2IsInTheSelectedTimeslot = (getExam(e2) == selectedTimeslot);
+					boolean e2IsInTheSelectedTimeslot = (getTimeslotOfExam(e2) == selectedTimeslot);
 					
 					if (e2IsInTheSelectedTimeslot){
 						
 						//implementing FIFO for adding a move in the tabulist
 						if(tabuList.size() == maxSizeTabuList)
 							tabuList.remove();
-						tabuList.add( new CoupleOfInt(e2, getExam(e2)) );
+						tabuList.add( new CoupleOfInt(e2, getTimeslotOfExam(e2)) );
 	
-						setExam(e2, -1);
-						//inseriamo gli esami deschedulati nella stessa lista 
-						deschedulatedExamToSchedule.add(p.getSortedExam(e2));
+						setExamInTimeslot(e2, -1);
+						//we insert descheduled exam in the same list
+						descheduledExamToSchedule.add(p.getSortedExam(e2));
 					}
 				}
 			}
 			
 			//exam1 is finally positioned
-			setExam(e1.id, selectedTimeslot);
+			setExamInTimeslot(e1.id, selectedTimeslot);
 			
 			//note that the list deschedulatedExamToSchedule will be composed by:
 			// - Exams that we could not place because
@@ -281,7 +281,7 @@ class Individual {
 		Iterator<Integer> it = examsToDeschedulate.iterator();
 		for(int i=0; i<nOfExamsToDesched; i++){
 			int exId = it.next();
-			setExam( exId, -1);
+			setExamInTimeslot( exId, -1);
 			//add the selected exam to the ones that have to be re-scheduled
 			SortedExam se = p.getSortedExam(exId);
 			examToSchedule.add(se);		
@@ -304,16 +304,15 @@ class Individual {
 			SortedExam e1 = examToScheduleCostWeight.poll();
 			
 			//generate feasible timeslot for scheduling exam e1
-			HashSet<Integer> T = p.getTimeslotSet();
-			HashSet<Integer> e1TimeslotSet = generateAvailableTimeslotSet(e1, T);
+			HashSet<Integer> e1AvailableTimeslots = generateAvailableTimeslotSet(e1);
 			
 			//if there are feasible timeslot to schedule e1
-			if(! e1TimeslotSet.isEmpty()){
+			if(! e1AvailableTimeslots.isEmpty()){
 				//look for the best timeslot in terms of best cost variation
 				int bestTimeslot = -1;
 				double bestVariation = 0;
 				
-				for(Integer timeslot: e1TimeslotSet){
+				for(Integer timeslot: e1AvailableTimeslots){
 					double var = this.costVariationMoveExam(e1.getId(), timeslot);
 					if(var<bestVariation){
 						bestVariation = var;
@@ -322,7 +321,7 @@ class Individual {
 				}
 				
 				if(bestTimeslot != -1){
-					setExam(e1.getId(), bestTimeslot);
+					setExamInTimeslot(e1.getId(), bestTimeslot);
 				}
 			}
 			
@@ -339,14 +338,12 @@ class Individual {
 		int timeslot1 = -1;
 		int timeslot2 = -1;
 		double bestVariation = 0;
-		//assicurarsi che i campi costIsCalculated e legalityIsCalculated vengano 
-		//reimpostati a false, se da problemi potrebbe essere per quello
 		for(int t1=0; t1< p.getNumOfTimeslots() - 1; t1++){
 			for(int t2=t1+1; t2<p.getNumOfTimeslots(); t2++){
-				//utilizziamo una funzione che ritorna la variazione della funzione obiettivo 
-				//se dovessimo scambiare gli esami di t1 con quelli di t2
+				//calculate how much the cost will vary if we swap 
+				//the exams in the two timeslots
 				double currentVariation = costVariationSwapTimeslots(t1, t2);
-				//aggiorniamo i parametri per effettuare il migliore spostamento
+				//we update if we found a best swap of timeslots
 				if(currentVariation < bestVariation){
 					timeslot1=t1;
 					timeslot2=t2;
@@ -354,18 +351,18 @@ class Individual {
 				}
 			}
 		}
-		//solo se effettivamente la funz. ob. migliora effettuiamo lo scambio
+		//we swap the timeslots only if we have a good variation
 		if(bestVariation < 0 ){
 			for(int e= 0; e<p.getNumOfExams(); e++){
-				if(getExam(e) == timeslot1){
-					setExam(e, timeslot2);
+				if(getTimeslotOfExam(e) == timeslot1){
+					setExamInTimeslot(e, timeslot2);
 				}
-				else if(getExam(e) == timeslot2){
-					setExam(e, timeslot1);
+				else if(getTimeslotOfExam(e) == timeslot2){
+					setExamInTimeslot(e, timeslot1);
 				}
 			}
 		}
-		//se non esiste uno scambio che porta benefici viene newInd rimarrà identico a this 
+		//if there is not a good swap, newInd will remain the same
 	}
 	
 	
@@ -383,10 +380,10 @@ class Individual {
 		
 		int pickedTimeslot = it.next();
 		
-		setExam(exam, pickedTimeslot);
+		setExamInTimeslot(exam, pickedTimeslot);
 	}
 		
-	//this method fills the queue in wich exams are ordered by 
+	//this method fills the queue in which exams are ordered by 
 	//their impact on the objective function
 	private PriorityQueue<SortedExam> calculateExamToScheduleCostWeight(){
 		PriorityQueue<SortedExam> examToScheduleCostWeight = new PriorityQueue<SortedExam>(11, new CostWeightComparator());
@@ -399,9 +396,9 @@ class Individual {
 	}
 		
 	//it returns the set of timeslots in which exam e1 can actually be scheduled
-	private HashSet<Integer> generateAvailableTimeslotSet(SortedExam e1, HashSet<Integer> timeslotSet){
+	private HashSet<Integer> generateAvailableTimeslotSet(SortedExam e1){
 		//I clone the complete timeslot set, in order to remove infeasible timeslots from there
-		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(timeslotSet);
+		HashSet<Integer> e1TimeslotSet = new HashSet<Integer>(p.getTimeslotSet());
 		
 		//we are iterating only through the exams in conflicts with e1
 		for(int i = 0; i < e1.conflictingExams.size(); i++){
@@ -409,11 +406,11 @@ class Individual {
 			//id of conflicting exams
 			int e2 = e1.conflictingExams.get(i);
 			
-			boolean e2IsScheduled = (getExam(e2) >= 0);
+			boolean e2IsScheduled = (getTimeslotOfExam(e2) >= 0);
 			if(e2IsScheduled){
 				//we should remove the timeslot because it's not
 				//available anymore for e1
-				e1TimeslotSet.remove(getExam(e2));
+				e1TimeslotSet.remove(getTimeslotOfExam(e2));
 			}
 		}
 
@@ -426,47 +423,43 @@ class Individual {
 		//we create a new temporary solution
 		//in which the examToMove is moved to the newTimeslot
 		Individual newInd = new Individual(this);
-		newInd.exams.set(examToMove, newTimeslot);
+		newInd.setExamInTimeslot(examToMove, newTimeslot);
 		double costWeightOld = this.getCostWeight(examToMove);
 		double costWeightNew = newInd.getCostWeight(examToMove);
 		costVar = (costWeightNew - costWeightOld);
 		return costVar;
 	}
 	
-	//una funzione che ritorna la variazione della funz. ob. che si avrebbe
-	//se si scambiasse il contenuto del timeslot t1 con quello del timeslot t2
+	//it returns the variation of the obj function if we swap the exams
+	//in timeslot t1 and in timeslot t2
 	private double costVariationSwapTimeslots(int t1, int t2){
 		
 		double variation = 0;
 		HashSet<Integer> involvedExams = new HashSet<Integer>();
 		
 		for(int e=0; e<p.getNumOfExams(); e++){
-			if(getExam(e) == t1 || getExam(e) == t2){
-				//riempiamo le due strutture parallelamente
+			if(getTimeslotOfExam(e) == t1 || getTimeslotOfExam(e) == t2){
 				involvedExams.add(e);
 			}
 		}
 		
 		Iterator<Integer> it = involvedExams.iterator();
-		//per ogni esame da muovere e1 calcoliamo la variazione nella funzione obiettivo
 		while( it.hasNext() ){
-			
+			//for each exam
 			int e1 = it.next();
 	
-			//scorriamo tutti gli esami e2 in conflitto con e1
+			//we scan all the exams e2 conflicting with e1
 			for(int j=0; j<p.getSortedExam(e1).conflictingExams.size(); j++){
 				
 				int e2= p.getSortedExam(e1).conflictingExams.get(j);
-				//solo se l'esame in conflitto non fa parte di quelli dell'altro timeslot
-				//calcoliamo la variazione
+				//we calculate variation only if e2 is not in the other timeslot,
+				//because otherwise the cost would not change
 				if(! involvedExams.contains(e2)){
-					int currentTimeslot = getExam(e1);
+					int currentTimeslot = getTimeslotOfExam(e1);
 					int otherTimeslot = ((currentTimeslot == t1) ? t2 : t1);
 					
-					//penalità attuale
-					double currentPenalty = FitnessFunct.getPenalty(e1, currentTimeslot, e2, getExam(e2));
-					//penalità se effettuiamo lo scambio
-					double newPenalty = FitnessFunct.getPenalty(e1, otherTimeslot, e2, getExam(e2));
+					double currentPenalty = FitnessFunct.getPenalty(e1, currentTimeslot, e2, getTimeslotOfExam(e2));
+					double newPenalty = FitnessFunct.getPenalty(e1, otherTimeslot, e2, getTimeslotOfExam(e2));
 		
 					variation += (newPenalty - currentPenalty);
 				}

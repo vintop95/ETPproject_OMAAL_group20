@@ -10,9 +10,9 @@ class FitnessFunct {
 		int numExams= p.getNumOfExams();
 		
 		for(int exam1=0; exam1<numExams; exam1++) {
-			int period1 = timetable.getExam(exam1);
+			int period1 = timetable.getTimeslotOfExam(exam1);
 			for(int exam2=exam1+1; exam2<numExams; exam2++) {
-				int period2= timetable.getExam(exam2);
+				int period2= timetable.getTimeslotOfExam(exam2);
 				int d = Math.abs(period1 - period2);
 				if(d <= 5)
 					cost += w[d]*p.getConflicts(exam1, exam2);
@@ -26,11 +26,11 @@ class FitnessFunct {
 	protected static double getCostWeight(Individual timetable, int exam1) {
 		double costWeight= 0;
 		int numExams= p.getNumOfExams();
-		int period1= timetable.getExam(exam1);
+		int period1= timetable.getTimeslotOfExam(exam1);
 		
 		for(int exam2=0; exam2<numExams; exam2++) {
 			if(exam1!=exam2) {
-				int period2=timetable.getExam(exam2);
+				int period2=timetable.getTimeslotOfExam(exam2);
 				int d = Math.abs(period1 - period2);
 				if(d <= 5)
 					costWeight += w[d]*p.getConflicts(exam1, exam2);
@@ -45,9 +45,9 @@ class FitnessFunct {
 		int numExams= p.getNumOfExams();
 		
 		for(int exam1=0; exam1<numExams; exam1++) {
-			int period1 = ind.getExam(exam1);
+			int period1 = ind.getTimeslotOfExam(exam1);
 			for(int exam2=exam1+1; exam2<numExams; exam2++) {
-				int period2 = ind.getExam(exam2);
+				int period2 = ind.getTimeslotOfExam(exam2);
 				if(period1 == period2) {
 					if(p.areExamsInConflicts(exam1, exam2))
 						return false; 
@@ -66,9 +66,8 @@ class FitnessFunct {
 		FitnessFunct.p = p;
 	}
 	
-	//una funzione che ritorna la penalità dovuta ad avere exam1 in timeslot1 
-	//ed exam2 in timeslot2
-	//si da per scontato che exam1 e exam2 saranno esami in conflitto
+	//it returns the penalty due to have exam1 in timeslot1 and exam2 in timeslot2
+	//we assume that exam1 and exam2 are in conflict
 	protected static double getPenalty(int exam1, int timeslot1, int exam2, int timeslot2){
 		int d = Math.abs(timeslot1 - timeslot2);
 		double penalty = 0;

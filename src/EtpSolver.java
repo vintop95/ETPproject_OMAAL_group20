@@ -23,7 +23,8 @@ public class EtpSolver {
 		//WE DEFINE A PROBLEM AND WE INSERT IT IN THE ALGORITHM (STATIC CLASS)
 		Problem p = new Problem(instanceName);
 		OptimizationAlgorithm.setProblem(p);
-		Population myPop = new Population(popMaxSize, p, true);
+		Population myPop = new Population(popMaxSize, p);
+		myPop.initialize();
 		
 		double timeElapsed = updateTimeElapsed(startTime);
 		while(timeElapsed < timeLimit){

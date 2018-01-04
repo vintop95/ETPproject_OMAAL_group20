@@ -202,6 +202,7 @@ public class Problem {
 	}
 	
 	
+	//OUTPUT METHODS
 	public Individual readOldIndividual(){
 		String fileName=instanceName + "_OMAAL_group20.sol";
 		File file=new File(fileName);
@@ -216,7 +217,7 @@ public class Problem {
 				 while(in.hasNextInt()) {
 				    int e = in.nextInt() - 1;
 				    int t = in.nextInt() - 1;
-				    old.setExam(e, t);
+				    old.setExamInTimeslot(e, t);
 				 }
 				in.close();
 	
@@ -266,9 +267,9 @@ public class Problem {
 		try{
 			FileWriter fw = new FileWriter(fileName);
 			BufferedWriter bw = new BufferedWriter(fw);
-			for(int i=0; i<N_EXAMS; i++) {
-				bw.write((i+1) + "  " + (fittest.getExam(i)+1));
-				if(i < N_EXAMS-1)
+			for(int e=0; e<N_EXAMS; e++) {
+				bw.write((e+1) + "  " + (fittest.getTimeslotOfExam(e)+1));
+				if(e < N_EXAMS-1)
 					bw.write("\r\n");
 			}
 			bw.flush();
