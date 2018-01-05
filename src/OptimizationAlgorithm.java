@@ -77,16 +77,17 @@ public class OptimizationAlgorithm {
 			//and eventually increases until 50% if population
 			//hasn't been improving for more than 'maxNonImprovingIterations' iterations
 			int maxNonImprovingIterations = 100;
-			double prob = 0.25 + 0.25 * 
+			double mutationProbability = 0.25 + 0.25 * 
 					Math.min(nonImprovingIterationsCount, maxNonImprovingIterations) / maxNonImprovingIterations;
 		
 			//we extract a random number between 0 and 1
-			if( rand.nextDouble() < prob ){
+			if( rand.nextDouble() < mutationProbability ){
 				//in this case we mutate an existing individual
 				double deschedulingRate = rand.nextDouble() * maxDeschedulationRate;
 				newInd = deschedulingOperator(ind1, deschedulingRate);
 			}else{
 				//in this case we try to optimize an existing individual
+				//choosing randomly one of the local search operators
 				if( rand.nextDouble() < 0.5 )
 					newInd = localSearchMoveExamsOperator(ind1);
 				else
